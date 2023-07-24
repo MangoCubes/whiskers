@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    id 'kotlin-kapt'
 }
 
 android {
@@ -49,7 +50,14 @@ android {
 dependencies {
 
     def nav_ver = "2.6.0"
+    def room_version = "2.5.2"
 
+    // Room
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
+
+    // Compose navigation
     implementation "androidx.navigation:navigation-compose:$nav_ver"
 
     implementation 'androidx.core:core-ktx:1.10.1'
