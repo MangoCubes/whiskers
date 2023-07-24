@@ -4,7 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import ch.skew.whiskers.data.accounts.AccountDao
+import ch.skew.whiskers.data.accounts.AccountDataDao
 import ch.skew.whiskers.data.accounts.AccountData
 
 
@@ -16,7 +16,7 @@ import ch.skew.whiskers.data.accounts.AccountData
 )
 
 abstract class WhiskersDB: RoomDatabase(){
-    abstract val accountDao: AccountDao
+    abstract val accountDataDao: AccountDataDao
     companion object {
 
         @Volatile
