@@ -108,7 +108,7 @@ fun SelectInstance(
                 ) {
                     Image(
                         modifier = Modifier
-                            .size(60.dp)
+                            .size(120.dp)
                             .clip(CircleShape),
                         painter = rememberAsyncImagePainter(
                             instanceUrl.value.toString() + "/static-assets/icons/192.png"
@@ -150,7 +150,15 @@ fun SelectInstance(
                             Text("Test")
                         }
                         Button(
-                            onClick = { onSelect(instanceUrl.value.toString()) }
+                            onClick = {
+                                val url = Uri.Builder()
+                                    .scheme("https")
+                                    .authority(tempUrl.value)
+                                    .build()
+                                    .toString()
+                                onSelect(url)
+                            },
+                            enabled = status.value !== QueryStatus.Querying
                         ) {
                             Text("Continue")
                         }

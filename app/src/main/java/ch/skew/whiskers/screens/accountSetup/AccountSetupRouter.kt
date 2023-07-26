@@ -5,6 +5,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ch.skew.whiskers.Pages
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 @Composable
 fun AccountSetupRouter(
@@ -21,13 +24,21 @@ fun AccountSetupRouter(
         composable(route = Pages.AccountSetup.SelectInstance.route) {
             SelectInstance (
                 { navController.popBackStack() },
-                { navController.navigate(Pages.AccountSetup.Login.route) }
+                {
+                    val encoded = URLEncoder.encode(it, StandardCharsets.UTF_8.toString())
+                    navController.navigate(Pages.AccountSetup.Login.route + "/${encoded}")
+                }
             )
         }
-        composable(route = Pages.AccountSetup.Login.route) {
-
+        composable(route = Pages.AccountSetup.Login.route + "/{instanceUrl}") {
+            Login(
+                URLDecoder.decode(
+                    it.arguments?.getString("instanceUrl"),
+                    StandardCharsets.UTF_8.toString()
+                )
+            ) { navController.popBackStack() }
         }
-        composable(route = Pages.AccountSetup.Register.route) {
+        composable(route = Pages.AccountSetup.Register.route + "/{instanceUrl}") {
 
         }
     }
