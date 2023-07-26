@@ -28,6 +28,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +37,20 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.skew.whiskers.components.LabelledRadioButton
 import coil.compose.rememberAsyncImagePainter
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.http.ContentType
+import io.ktor.http.appendPathSegments
+import io.ktor.http.contentType
+import kotlinx.coroutines.launch
+
+enum class QueryStatus {
+    Querying,
+    Error,
+    Success
+}
 
 data class WellKnownInstances(
     val url: String,
@@ -94,7 +109,9 @@ fun SelectInstance(
                 customUrl.value = true
             }
             if (customUrl.value) {
+                val scope = rememberCoroutineScope()
                 val tempUrl = remember { mutableStateOf("") }
+                val status = remember { mutableStateOf(QueryStatus.Success) }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
@@ -114,7 +131,11 @@ fun SelectInstance(
                     Text(
                         instanceUrl.value.toString(),
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray
+                        color = when(status.value) {
+                            QueryStatus.Querying -> Color.Gray
+                            QueryStatus.Error -> Color.Red
+                            QueryStatus.Success -> Color.Green
+                        }
                     )
                     TextField(
                         value = tempUrl.value,
@@ -126,10 +147,17 @@ fun SelectInstance(
                     ) {
                         Button(
                             onClick = {
-                                instanceUrl.value = Uri.Builder()
+                                val instance = Uri.Builder()
                                     .scheme("https")
                                     .authority(tempUrl.value)
                                     .build()
+                                instanceUrl.value = instance
+                                scope.launch {
+                                    status.value = QueryStatus.Querying
+                                    status.value =
+                                        if (testQuery(instance.toString())) QueryStatus.Success
+                                        else QueryStatus.Error
+                                }
                             }
                         ) {
                             Text("Test")
@@ -165,4 +193,23 @@ fun SelectInstance(
             }
         }
     }
+}
+
+suspend fun testQuery(instance: String): Boolean {
+    val client = HttpClient()
+    return try {
+        val response = client.post(instance) {
+            url {
+                appendPathSegments("api", "ping")
+            }
+            contentType(ContentType.parse("application/json"))
+            setBody("{}")
+        }
+        println(response.body<String>())
+        (response.status.value in 200..299)
+    } catch (e: Throwable) {
+        false
+    }
+
+
 }

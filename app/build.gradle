@@ -51,6 +51,7 @@ dependencies {
 
     def nav_ver = "2.6.0"
     def room_version = "2.5.2"
+    def ktor_version = "2.3.2"
 
     // Room
     implementation "androidx.room:room-runtime:$room_version"
@@ -63,6 +64,9 @@ dependencies {
 
     // Async image loading
     implementation "io.coil-kt:coil-compose:2.4.0"
+
+    // Ktor HTTP client
+    implementation "io.ktor:ktor-client-android:$ktor_version"
 
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.0')
