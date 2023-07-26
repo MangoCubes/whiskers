@@ -1,10 +1,6 @@
 package ch.skew.whiskers.misskey
 
-import ch.skew.whiskers.misskey.data.AppCreateReq
-import ch.skew.whiskers.misskey.data.AppCreateRes
-import ch.skew.whiskers.misskey.data.AuthError
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -36,7 +32,7 @@ class MisskeyAPI(
         }
     }
     companion object {
-        private suspend fun queryWithoutAuth(instance: String, endpoint: List<String>, body: String): Result<HttpResponse> {
+        suspend fun queryWithoutAuth(instance: String, endpoint: List<String>, body: String): Result<HttpResponse> {
             val client = HttpClient()
             return try {
                 val res = client.post(instance) {
@@ -56,19 +52,6 @@ class MisskeyAPI(
             return response?.status?.value in 200..299
         }
 
-        suspend fun create(instance: String): Result<String> {
-            val body = AppCreateReq("Whiskers", "Authorisation for Whiskers app", listOf())
-            queryWithoutAuth(instance, listOf("app", "create"), body.toString())
-                .fold(
-                    {
-                        val res = it.body<AppCreateRes>()
-                        return if (res.isAuthorized && res.secret !== null) {
-                            Result.success(res.secret)
-                        } else Result.failure(AuthError())
-                    }, {
-                        return Result.failure(it)
-                    }
-                )
-        }
+
     }
 }
