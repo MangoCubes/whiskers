@@ -13,9 +13,18 @@ fun AccountSetupRouter(
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = if (firstTimeSetup) Pages.Account.Welcome.route else Pages.Account.SelectInstance.route
+        startDestination = if (firstTimeSetup) Pages.AccountSetup.Welcome.route else Pages.AccountSetup.SelectInstance.route
     ) {
-        composable(route = Pages.Account.Welcome.route) {
+        composable(route = Pages.AccountSetup.Welcome.route) {
+            Welcome()
+        }
+        composable(route = Pages.AccountSetup.SelectInstance.route) {
+            SelectInstance { navController.popBackStack() }
+        }
+        composable(route = Pages.AccountSetup.Login.route) {
+
+        }
+        composable(route = Pages.AccountSetup.Register.route) {
 
         }
     }
