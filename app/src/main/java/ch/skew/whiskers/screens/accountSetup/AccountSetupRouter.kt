@@ -1,4 +1,4 @@
-package ch.skew.whiskers.screens.addAccount
+package ch.skew.whiskers.screens.accountSetup
 
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
@@ -7,7 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import ch.skew.whiskers.Pages
 
 @Composable
-fun AccountSetup(
+fun AccountSetupRouter(
     firstTimeSetup: Boolean
 ) {
     val navController = rememberNavController()

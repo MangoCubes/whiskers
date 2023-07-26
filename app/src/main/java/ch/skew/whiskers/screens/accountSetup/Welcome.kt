@@ -1,4 +1,4 @@
-package ch.skew.whiskers.screens.addAccount
+package ch.skew.whiskers.screens.accountSetup
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
