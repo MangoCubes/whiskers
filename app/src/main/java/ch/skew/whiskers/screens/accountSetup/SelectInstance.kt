@@ -35,15 +35,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import ch.skew.whiskers.`class`.MisskeyAPI
 import ch.skew.whiskers.components.LabelledRadioButton
 import coil.compose.rememberAsyncImagePainter
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.appendPathSegments
-import io.ktor.http.contentType
 import kotlinx.coroutines.launch
 
 enum class QueryStatus {
@@ -70,11 +64,6 @@ fun SelectInstance(
     goBack: () -> Unit,
     onSelect: (url: String) -> Unit
 ) {
-    val wellKnown = listOf(
-        WellKnownInstances("https://misskey.io", "Misskey", "Most popular Misskey instance"),
-        WellKnownInstances("https://calckey.world", "Calckey.world", "Well known Firefish instance"),
-        WellKnownInstances("https://misskey.design", "Misskey Design", "Misskey instance for artists")
-    )
     Scaffold(
         topBar = {
             TopAppBar(
@@ -89,7 +78,6 @@ fun SelectInstance(
 
     ) { padding ->
         val customUrl = remember { mutableStateOf(false) }
-        val scroll = rememberScrollState()
         val instanceUrl = remember { mutableStateOf(
             Uri.Builder()
                 .scheme("https")
@@ -100,7 +88,6 @@ fun SelectInstance(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxHeight()
-                .verticalScroll(scroll)
         ) {
             LabelledRadioButton(label = "Use popular instances", selected = !customUrl.value) {
                 customUrl.value = false
@@ -155,7 +142,7 @@ fun SelectInstance(
                                 scope.launch {
                                     status.value = QueryStatus.Querying
                                     status.value =
-                                        if (testQuery(instance.toString())) QueryStatus.Success
+                                        if (MisskeyAPI.ping(instance.toString())) QueryStatus.Success
                                         else QueryStatus.Error
                                 }
                             }
@@ -171,45 +158,37 @@ fun SelectInstance(
 
                 }
             } else {
-                wellKnown.forEach {
-                    ListItem(
-                        headlineText = { Text(it.name) },
-                        supportingText = { Text(it.desc) },
-                        overlineText = { Text(it.url) },
-                        leadingContent = {
-                            Image(
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .clip(CircleShape),
-                                painter = rememberAsyncImagePainter(it.url + "/static-assets/icons/192.png"),
-                                contentDescription = it.name
-                            )
-                        },
-                        modifier = Modifier.clickable {
-                            onSelect(it.url)
-                        }
-                    )
+                val wellKnown = listOf(
+                    WellKnownInstances("https://misskey.io", "Misskey", "Most popular Misskey instance"),
+                    WellKnownInstances("https://calckey.world", "Calckey.world", "Well known Firefish instance"),
+                    WellKnownInstances("https://misskey.design", "Misskey Design", "Misskey instance for artists")
+                )
+                val scroll = rememberScrollState()
+                Column(
+                    modifier = Modifier
+                        .verticalScroll(scroll)
+                ) {
+                    wellKnown.forEach {
+                        ListItem(
+                            headlineText = { Text(it.name) },
+                            supportingText = { Text(it.desc) },
+                            overlineText = { Text(it.url) },
+                            leadingContent = {
+                                Image(
+                                    modifier = Modifier
+                                        .size(60.dp)
+                                        .clip(CircleShape),
+                                    painter = rememberAsyncImagePainter(it.url + "/static-assets/icons/192.png"),
+                                    contentDescription = it.name
+                                )
+                            },
+                            modifier = Modifier.clickable {
+                                onSelect(it.url)
+                            }
+                        )
+                    }
                 }
             }
         }
     }
-}
-
-suspend fun testQuery(instance: String): Boolean {
-    val client = HttpClient()
-    return try {
-        val response = client.post(instance) {
-            url {
-                appendPathSegments("api", "ping")
-            }
-            contentType(ContentType.parse("application/json"))
-            setBody("{}")
-        }
-        println(response.body<String>())
-        (response.status.value in 200..299)
-    } catch (e: Throwable) {
-        false
-    }
-
-
 }
