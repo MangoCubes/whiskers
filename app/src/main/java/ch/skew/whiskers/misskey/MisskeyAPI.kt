@@ -1,6 +1,11 @@
 package ch.skew.whiskers.misskey
 
+import ch.skew.whiskers.misskey.data.PingReqData
+import ch.skew.whiskers.misskey.data.PingResData
+import ch.skew.whiskers.misskey.data.ReqData
+import ch.skew.whiskers.misskey.data.ResData
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -32,7 +37,7 @@ class MisskeyAPI(
         }
     }
     companion object {
-        suspend fun queryWithoutAuth(instance: String, endpoint: List<String>, body: String): Result<HttpResponse> {
+        suspend inline fun <reified REQ: ReqData, reified RES: ResData> queryWithoutAuth(instance: String, endpoint: List<String>, body: REQ): Result<RES> {
             val client = HttpClient()
             return try {
                 val res = client.post(instance) {
@@ -42,14 +47,14 @@ class MisskeyAPI(
                     contentType(ContentType.parse("application/json"))
                     setBody(body)
                 }
-                Result.success(res)
+                Result.success(res.body())
             } catch (e: Throwable) {
                 Result.failure(e)
             }
         }
         suspend fun ping(instance: String): Boolean {
-            val response = queryWithoutAuth(instance, listOf("app", "ping"), "{}").getOrNull()
-            return response?.status?.value in 200..299
+            val response = queryWithoutAuth<PingReqData, PingResData>(instance, listOf("app", "ping"), PingReqData)
+            return response.isSuccess
         }
 
 
