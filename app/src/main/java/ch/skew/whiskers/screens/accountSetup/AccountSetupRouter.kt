@@ -16,10 +16,13 @@ fun AccountSetupRouter(
         startDestination = if (firstTimeSetup) Pages.AccountSetup.Welcome.route else Pages.AccountSetup.SelectInstance.route
     ) {
         composable(route = Pages.AccountSetup.Welcome.route) {
-            Welcome()
+            Welcome { navController.navigate(Pages.AccountSetup.SelectInstance.route) }
         }
         composable(route = Pages.AccountSetup.SelectInstance.route) {
-            SelectInstance { navController.popBackStack() }
+            SelectInstance (
+                { navController.popBackStack() },
+                { navController.navigate(Pages.AccountSetup.Login.route) }
+            )
         }
         composable(route = Pages.AccountSetup.Login.route) {
 

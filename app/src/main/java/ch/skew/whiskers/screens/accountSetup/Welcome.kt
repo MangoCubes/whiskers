@@ -21,10 +21,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.skew.whiskers.R
 
+@Preview
+@Composable
+fun WelcomePreview() {
+    Welcome {}
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
-fun Welcome() {
+fun Welcome(
+    next: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar({
@@ -64,7 +71,7 @@ fun Welcome() {
                     .fillMaxHeight()
             ) {
                 Button(
-                    onClick = {}
+                    onClick = next
                 ) {
                     Text("Get Started")
                 }

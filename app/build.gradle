@@ -61,6 +61,9 @@ dependencies {
     // Compose navigation
     implementation "androidx.navigation:navigation-compose:$nav_ver"
 
+    // Async image loading
+    implementation "io.coil-kt:coil-compose:2.4.0"
+
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.0')
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
