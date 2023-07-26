@@ -49,3 +49,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+/**
+ * TODO List:
+ * Give every Text component something from MaterialTheme.typography
+ * Make every string use resource
+ */

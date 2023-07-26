@@ -1,8 +1,13 @@
 package ch.skew.whiskers.screens.accountSetup
 
+import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -10,18 +15,23 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.skew.whiskers.components.LabelledRadioButton
@@ -43,11 +53,12 @@ fun SelectInstancePreview() {
 @Composable
 fun SelectInstance(
     goBack: () -> Unit,
-    onSelect: () -> Unit
+    onSelect: (url: String) -> Unit
 ) {
     val wellKnown = listOf(
         WellKnownInstances("https://misskey.io", "Misskey", "Most popular Misskey instance"),
-        WellKnownInstances("https://calckey.world", "Calckey.world", "Well known Firefish instance")
+        WellKnownInstances("https://calckey.world", "Calckey.world", "Well known Firefish instance"),
+        WellKnownInstances("https://misskey.design", "Misskey Design", "Misskey instance for artists")
     )
     Scaffold(
         topBar = {
@@ -64,8 +75,15 @@ fun SelectInstance(
     ) { padding ->
         val customUrl = remember { mutableStateOf(false) }
         val scroll = rememberScrollState()
+        val instanceUrl = remember { mutableStateOf(
+            Uri.Builder()
+                .scheme("https")
+                .authority("misskey.io")
+                .build()
+        ) }
         Column(
-            modifier = Modifier.padding(padding)
+            modifier = Modifier
+                .padding(padding)
                 .fillMaxHeight()
                 .verticalScroll(scroll)
         ) {
@@ -76,7 +94,54 @@ fun SelectInstance(
                 customUrl.value = true
             }
             if (customUrl.value) {
+                val tempUrl = remember { mutableStateOf("") }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Image(
+                        modifier = Modifier
+                            .size(60.dp)
+                            .clip(CircleShape),
+                        painter = rememberAsyncImagePainter(
+                            instanceUrl.value.toString() + "/static-assets/icons/192.png"
+                        ),
+                        contentDescription = instanceUrl.value.toString()
+                    )
+                    Text(
+                        instanceUrl.value.toString(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray
+                    )
+                    TextField(
+                        value = tempUrl.value,
+                        onValueChange = { tempUrl.value = it },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                instanceUrl.value = Uri.Builder()
+                                    .scheme("https")
+                                    .authority(tempUrl.value)
+                                    .build()
+                            }
+                        ) {
+                            Text("Test")
+                        }
+                        Button(
+                            onClick = { onSelect(instanceUrl.value.toString()) }
+                        ) {
+                            Text("Continue")
+                        }
+                    }
 
+                }
             } else {
                 wellKnown.forEach {
                     ListItem(
@@ -91,6 +156,9 @@ fun SelectInstance(
                                 painter = rememberAsyncImagePainter(it.url + "/static-assets/icons/192.png"),
                                 contentDescription = it.name
                             )
+                        },
+                        modifier = Modifier.clickable {
+                            onSelect(it.url)
                         }
                     )
                 }
