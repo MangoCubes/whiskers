@@ -10,7 +10,7 @@ data class AppCreateReqData(
     val description: String,
     val permission: List<String>,
     val callbackUrl: String? = null
-): ReqData()
+)
 
 @Serializable
 data class AppCreateResData(
@@ -21,4 +21,4 @@ data class AppCreateResData(
     val callbackUrl: String? = null,
     val secret: String? = null,
     val isAuthorized: Boolean? = null
-): ResData()
+)

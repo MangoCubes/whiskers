@@ -1,4 +1,4 @@
-package ch.skew.whiskers.misskey.data.api
+package ch.skew.whiskers.misskey.data
 
 import kotlinx.serialization.Serializable
 

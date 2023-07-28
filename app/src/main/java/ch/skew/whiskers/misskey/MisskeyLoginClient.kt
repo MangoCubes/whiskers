@@ -1,10 +1,10 @@
 package ch.skew.whiskers.misskey
 
-import ch.skew.whiskers.misskey.data.AppCreateReqData
-import ch.skew.whiskers.misskey.data.AppCreateResData
-import ch.skew.whiskers.misskey.data.AuthError
-import ch.skew.whiskers.misskey.data.AuthSessionGenerateReqData
-import ch.skew.whiskers.misskey.data.AuthSessionGenerateResData
+import ch.skew.whiskers.misskey.data.api.AppCreateReqData
+import ch.skew.whiskers.misskey.data.api.AppCreateResData
+import ch.skew.whiskers.misskey.data.api.AuthError
+import ch.skew.whiskers.misskey.data.api.AuthSessionGenerateReqData
+import ch.skew.whiskers.misskey.data.api.AuthSessionGenerateResData
 
 class MisskeyLoginClient(
     val instance: String,
