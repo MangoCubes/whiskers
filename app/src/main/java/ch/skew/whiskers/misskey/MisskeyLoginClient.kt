@@ -23,7 +23,7 @@ class MisskeyLoginClient(
     }
     companion object {
         suspend fun create(instance: String): Result<MisskeyLoginClient> {
-            val body = AppCreateReqData("Whiskers", "Authorisation for Whiskers app", listOf()) // TODO: Put something in callback url so that app goes back upon login
+            val body = AppCreateReqData("Whiskers", "Authorisation for Whiskers app", listOf(), "whiskers://verify")
             MisskeyAPI.queryWithoutAuth<AppCreateReqData, AppCreateResData>(instance, listOf("app", "create"), body)
                 .fold(
                     {

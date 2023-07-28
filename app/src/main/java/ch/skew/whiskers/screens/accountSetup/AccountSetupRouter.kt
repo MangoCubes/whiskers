@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navDeepLink
 import ch.skew.whiskers.Pages
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -38,8 +39,13 @@ fun AccountSetupRouter(
                 )
             ) { navController.popBackStack() }
         }
-        composable(route = Pages.AccountSetup.Register.route + "/{instanceUrl}") {
-
+        composable(
+            route = Pages.AccountSetup.Verify.route,
+            deepLinks = listOf(
+                navDeepLink { uriPattern = "whiskers://verify" }
+            )
+        ) {
+            Verify()
         }
     }
 }
