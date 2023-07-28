@@ -6,6 +6,7 @@ import ch.skew.whiskers.misskey.data.ReqData
 import ch.skew.whiskers.misskey.data.ResData
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -14,6 +15,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
 
 class MisskeyAPI(
     private val token: String
@@ -38,10 +40,15 @@ class MisskeyAPI(
     }
     companion object {
         suspend inline fun <reified REQ: ReqData, reified RES: ResData> queryWithoutAuth(instance: String, endpoint: List<String>, body: REQ): Result<RES> {
-            val client = HttpClient()
+            val client = HttpClient {
+                install(ContentNegotiation) {
+                    json()
+                }
+            }
             return try {
                 val res = client.post(instance) {
                     url {
+                        appendPathSegments("api")
                         appendPathSegments(endpoint)
                     }
                     contentType(ContentType.parse("application/json"))

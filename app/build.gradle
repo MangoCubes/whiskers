@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
+    id 'org.jetbrains.kotlin.plugin.serialization'
 }
 
 android {
@@ -68,8 +69,10 @@ dependencies {
     // Ktor HTTP client
     implementation "io.ktor:ktor-client-android:$ktor_version"
 
-    // GSON for data class -> JSON
-    implementation 'com.google.code.gson:gson:2.10.1'
+    // For data class -> JSON
+    implementation "io.ktor:ktor-client-content-negotiation:$ktor_version"
+    implementation "io.ktor:ktor-serialization-kotlinx-json:$ktor_version"
+    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1'
 
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.0')
