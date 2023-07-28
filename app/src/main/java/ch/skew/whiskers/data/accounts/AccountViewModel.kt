@@ -20,7 +20,7 @@ class AccountDataViewModel(
             }
             is AccountEvent.InsertAccount -> {
                 viewModelScope.launch {
-                    dao.insert(e.username, e.url, e.token)
+                    dao.insert(e.url, e.token)
                 }
             }
         }

@@ -8,8 +8,6 @@ import androidx.room.PrimaryKey
 data class AccountData(
     @PrimaryKey(autoGenerate = true)
     val id: Int,
-    @ColumnInfo(name = "username")
-    val username: String,
     @ColumnInfo(name = "url")
     val url: String,
     @ColumnInfo(name = "token")
