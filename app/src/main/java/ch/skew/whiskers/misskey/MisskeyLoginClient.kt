@@ -1,23 +1,34 @@
 package ch.skew.whiskers.misskey
 
-import ch.skew.whiskers.misskey.data.AppCreateReq
-import ch.skew.whiskers.misskey.data.AppCreateRes
+import ch.skew.whiskers.misskey.data.AppCreateReqData
+import ch.skew.whiskers.misskey.data.AppCreateResData
 import ch.skew.whiskers.misskey.data.AuthError
-import com.google.gson.Gson
-import io.ktor.client.call.body
+import ch.skew.whiskers.misskey.data.AuthSessionGenerateReqData
+import ch.skew.whiskers.misskey.data.AuthSessionGenerateResData
 
 class MisskeyLoginClient(
+    val instance: String,
     val appSecret: String
 ) {
+    suspend fun generate(): Result<AuthSessionGenerateResData> {
+        val body = AuthSessionGenerateReqData(this.appSecret)
+        MisskeyAPI.queryWithoutAuth<AuthSessionGenerateReqData, AuthSessionGenerateResData>(instance, listOf("auth", "session", "generate"), body)
+            .fold(
+                {
+                    return Result.success(it)
+                }, {
+                    return Result.failure(it)
+                }
+            )
+    }
     companion object {
         suspend fun create(instance: String): Result<MisskeyLoginClient> {
-            val body = AppCreateReq("Whiskers", "Authorisation for Whiskers app", listOf())
-            MisskeyAPI.queryWithoutAuth(instance, listOf("app", "create"), Gson().toJson(body))
+            val body = AppCreateReqData("Whiskers", "Authorisation for Whiskers app", listOf())
+            MisskeyAPI.queryWithoutAuth<AppCreateReqData, AppCreateResData>(instance, listOf("app", "create"), body)
                 .fold(
                     {
-                        val res = it.body<AppCreateRes>()
-                        return if (res.secret !== null) {
-                            Result.success(MisskeyLoginClient(res.secret))
+                        return if (it.secret !== null) {
+                            Result.success(MisskeyLoginClient(instance, it.secret))
                         } else Result.failure(AuthError())
                     }, {
                         return Result.failure(it)

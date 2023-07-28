@@ -16,9 +16,9 @@ data class AppCreateReqData(
 data class AppCreateResData(
     val id: String,
     val name: String,
-    val description: String,
+    val description: String? = null,
     val permission: List<String>,
-    val callbackUrl: String,
-    val secret: String?,
-    val isAuthorized: Boolean
+    val callbackUrl: String? = null,
+    val secret: String? = null,
+    val isAuthorized: Boolean? = null
 ): ResData()
