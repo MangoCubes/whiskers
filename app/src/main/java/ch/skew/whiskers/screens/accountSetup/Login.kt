@@ -19,6 +19,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +36,14 @@ import kotlinx.coroutines.launch
 @Preview
 fun LoginPreview() {
     Login("https://misskey.io") {}
+}
+
+enum class LoginState {
+    Idle,
+    CreatingApp,
+    GeneratingSession,
+    Redirecting,
+    Error
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,6 +74,7 @@ fun Login(
                 )
             },
         ) { padding ->
+            val state = remember { mutableStateOf(LoginState.Idle) }
             Column(
                 modifier = Modifier
                     .padding(padding)
@@ -81,19 +92,38 @@ fun Login(
                     ),
                     contentDescription = instanceUrl
                 )
-                Button(onClick = {
-                    scope.launch {
-                        MisskeyLoginClient.create(instanceUrl).fold({
-                            val generated = it.generate().getOrNull()
-                            if (generated !== null) uriHandler.openUri(generated.url)
-                        }, {
-                            println(it)
-                        })
-
-                    }
-                }) {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            state.value = LoginState.CreatingApp
+                            MisskeyLoginClient.create(instanceUrl).fold({
+                                state.value = LoginState.GeneratingSession
+                                val generated = it.generate().getOrNull()
+                                if (generated !== null) {
+                                    state.value = LoginState.Redirecting
+                                    uriHandler.openUri(generated.url)
+                                    state.value = LoginState.Idle
+                                } else {
+                                    state.value = LoginState.Error
+                                }
+                            }, {
+                                state.value = LoginState.Error
+                            })
+                        }
+                    },
+                    enabled = state.value === LoginState.Idle || state.value === LoginState.Error
+                ) {
                     Text("Login")
                 }
+                Text(
+                    when(state.value) {
+                        LoginState.Idle -> ""
+                        LoginState.CreatingApp -> "Creating app..."
+                        LoginState.GeneratingSession -> "Generating session..."
+                        LoginState.Redirecting -> "Redirecting..."
+                        LoginState.Error -> "Login failed!"
+                    }
+                )
             }
         }
     }
