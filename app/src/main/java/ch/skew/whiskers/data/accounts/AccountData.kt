@@ -9,7 +9,7 @@ data class AccountData(
     @PrimaryKey(autoGenerate = true)
     val id: Int,
     @ColumnInfo(name = "url")
-    val url: String,
+    val url: String?,
     @ColumnInfo(name = "token")
-    val token: String
+    val token: String?
 )

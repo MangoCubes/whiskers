@@ -2,9 +2,7 @@ package ch.skew.whiskers.screens.accountSetup
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -30,12 +28,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.skew.whiskers.misskey.MisskeyLoginClient
 import coil.compose.rememberAsyncImagePainter
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 @Composable
 @Preview
 fun LoginPreview() {
-    Login("https://misskey.io", {}) {a, b -> }
+    val scope = rememberCoroutineScope()
+    Login("https://misskey.io", {}, { scope.async { return@async 1L } }) { a, b -> }
 }
 
 enum class LoginState {
@@ -51,16 +52,11 @@ enum class LoginState {
 fun Login(
     instanceUrl: String?,
     goBack: () -> Unit,
-    insertAccount: (String, String) -> Unit
+    insertAccount: () -> Deferred<Long>,
+    activateAccount: (String, String) -> Unit
 ) {
-    if (instanceUrl === null) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("You are not supposed to see this, go away.")
-        }
-    } else {
+    if (instanceUrl === null) goBack()
+    else {
         val scope = rememberCoroutineScope()
         val uriHandler = LocalUriHandler.current
         Scaffold(
@@ -97,13 +93,14 @@ fun Login(
                     onClick = {
                         scope.launch {
                             state.value = LoginState.CreatingApp
-                            MisskeyLoginClient.create(instanceUrl).fold({
+                            val id = insertAccount().await()
+                            MisskeyLoginClient.create(instanceUrl, id).fold({
                                 state.value = LoginState.GeneratingSession
                                 val generated = it.generate().getOrNull()
                                 if (generated !== null) {
                                     state.value = LoginState.Redirecting
                                     uriHandler.openUri(generated.url)
-                                    insertAccount(it.instance, it.appSecret)
+                                    activateAccount(it.instance, it.appSecret)
                                     state.value = LoginState.Idle
                                 } else {
                                     state.value = LoginState.Error

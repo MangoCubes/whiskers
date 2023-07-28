@@ -8,21 +8,28 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import ch.skew.whiskers.data.accounts.AccountData
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Preview
-fun Verify() {
+fun Verify(
+    id: Int?,
+    accounts: List<AccountData>
+) {
     Scaffold(
         topBar = {
             TopAppBar(
-                { Text("Checking Account") }
+                { Text("Account Setup") }
             )
         },
     ) { padding ->
+        val account = if (id === null) null else accounts.find { it.id == id }
         Column(modifier = Modifier.padding(padding)) {
-            Text("Login successful!")
+            if(account === null) {
+                Text("Failed to add account.")
+            } else {
+                Text("Account added! (ID: $id)")
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import ch.skew.whiskers.Pages
+import kotlinx.coroutines.Deferred
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -12,7 +13,8 @@ import java.nio.charset.StandardCharsets
 @Composable
 fun AccountSetupRouter(
     firstTimeSetup: Boolean,
-    insertAccount: (String, String) -> Unit
+    insertAccount: () -> Deferred<Long>,
+    activateAccount: (String, String) -> Unit
 ) {
     val navController = rememberNavController()
     NavHost(
@@ -38,7 +40,8 @@ fun AccountSetupRouter(
                     StandardCharsets.UTF_8.toString()
                 ),
                 { navController.popBackStack() },
-                insertAccount
+                insertAccount,
+                activateAccount
             )
         }
     }
