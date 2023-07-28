@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navDeepLink
 import ch.skew.whiskers.Pages
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -12,7 +11,8 @@ import java.nio.charset.StandardCharsets
 
 @Composable
 fun AccountSetupRouter(
-    firstTimeSetup: Boolean
+    firstTimeSetup: Boolean,
+    insertAccount: (String, String) -> Unit
 ) {
     val navController = rememberNavController()
     NavHost(
@@ -36,16 +36,10 @@ fun AccountSetupRouter(
                 URLDecoder.decode(
                     it.arguments?.getString("instanceUrl"),
                     StandardCharsets.UTF_8.toString()
-                )
-            ) { navController.popBackStack() }
-        }
-        composable(
-            route = Pages.AccountSetup.Verify.route,
-            deepLinks = listOf(
-                navDeepLink { uriPattern = "whiskers://verify" }
+                ),
+                { navController.popBackStack() },
+                insertAccount
             )
-        ) {
-            Verify()
         }
     }
 }

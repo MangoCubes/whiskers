@@ -13,8 +13,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import ch.skew.whiskers.data.WhiskersDB
 import ch.skew.whiskers.data.accounts.AccountDataViewModel
+import ch.skew.whiskers.data.accounts.AccountEvent
 import ch.skew.whiskers.screens.accountSetup.AccountSetupRouter
-import ch.skew.whiskers.screens.loading.Router
+import ch.skew.whiskers.screens.mainScreen.Router
 import ch.skew.whiskers.ui.theme.WhiskersTheme
 
 class MainActivity : ComponentActivity() {
@@ -40,7 +41,9 @@ class MainActivity : ComponentActivity() {
                 ) {
                     val accounts = accountDataViewModel.accounts.collectAsState()
                     if (accounts.value.isEmpty()) {
-                        AccountSetupRouter(true)
+                        AccountSetupRouter(true) { url, token ->
+                            accountDataViewModel.onEvent(AccountEvent.InsertAccount(url, token))
+                        }
                     } else {
                         Router(accounts.value)
                     }

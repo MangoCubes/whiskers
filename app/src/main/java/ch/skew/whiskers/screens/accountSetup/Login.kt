@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 @Composable
 @Preview
 fun LoginPreview() {
-    Login("https://misskey.io") {}
+    Login("https://misskey.io", {}) {a, b -> }
 }
 
 enum class LoginState {
@@ -50,7 +50,8 @@ enum class LoginState {
 @Composable
 fun Login(
     instanceUrl: String?,
-    goBack: () -> Unit
+    goBack: () -> Unit,
+    insertAccount: (String, String) -> Unit
 ) {
     if (instanceUrl === null) {
         Box(
@@ -102,6 +103,7 @@ fun Login(
                                 if (generated !== null) {
                                     state.value = LoginState.Redirecting
                                     uriHandler.openUri(generated.url)
+                                    insertAccount(it.instance, it.appSecret)
                                     state.value = LoginState.Idle
                                 } else {
                                     state.value = LoginState.Error
