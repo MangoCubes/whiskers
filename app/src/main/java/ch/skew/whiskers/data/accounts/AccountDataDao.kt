@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.Flow
 interface AccountDataDao{
     @Query("INSERT INTO account_data DEFAULT VALUES")
     suspend fun insert(): Long
-    @Query("INSERT INTO account_data (url, token) VALUES (:url, :token)")
-    suspend fun activate(url: String, token: String)
+    @Query("UPDATE account_data SET url = :url, token = :token WHERE id = :id")
+    suspend fun activate(id: Int, url: String, token: String)
     @Query("SELECT * FROM account_data")
     fun getAllAccounts(): Flow<List<AccountData>>
     @Query("SELECT * FROM account_data WHERE id = :id")

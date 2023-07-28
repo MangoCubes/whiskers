@@ -1,6 +1,8 @@
 package ch.skew.whiskers.misskey
 
 import android.net.Uri
+import ch.skew.whiskers.misskey.data.Note
+import ch.skew.whiskers.misskey.data.api.NotesTimelineReqData
 import ch.skew.whiskers.misskey.data.api.PingReqData
 import ch.skew.whiskers.misskey.data.api.PingResData
 import io.ktor.client.HttpClient
@@ -19,6 +21,9 @@ class MisskeyAPI(
     private val appSecret: String,
     private val instance: Uri,
 ) {
+    suspend fun notesTimeline(limit: NotesTimelineReqData = NotesTimelineReqData()): Result<List<Note>> {
+        return this.queryWithAuth(listOf("notes", "timeline"), limit)
+    }
     private suspend inline fun <reified REQ, reified RES> queryWithAuth(endpoint: List<String>, body: REQ): Result<RES> {
         val client = HttpClient {
             install(ContentNegotiation) {
@@ -64,10 +69,8 @@ class MisskeyAPI(
             }
         }
         suspend fun ping(instance: String): Boolean {
-            val response = queryWithoutAuth<PingReqData, PingResData>(instance, listOf("app", "ping"), PingReqData)
+            val response = queryWithoutAuth<_, PingResData>(instance, listOf("app", "ping"), PingReqData)
             return response.isSuccess
         }
-
-
     }
 }

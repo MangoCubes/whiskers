@@ -8,15 +8,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.navigation
+import androidx.navigation.compose.rememberNavController
 import ch.skew.whiskers.data.WhiskersDB
 import ch.skew.whiskers.data.accounts.AccountDataViewModel
 import ch.skew.whiskers.data.accounts.AccountEvent
 import ch.skew.whiskers.data.accounts.AccountEventAsync
-import ch.skew.whiskers.screens.accountSetup.AccountSetupRouter
-import ch.skew.whiskers.screens.mainScreen.Router
+import ch.skew.whiskers.screens.accountSetup.accountSetup
+import ch.skew.whiskers.screens.mainScreen.main
 import ch.skew.whiskers.ui.theme.WhiskersTheme
 
 class MainActivity : ComponentActivity() {
@@ -41,17 +46,32 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val accounts = accountDataViewModel.accounts.collectAsState()
-                    if (accounts.value.isEmpty()) {
-                        AccountSetupRouter(
-                            true,
-                            {
-                                accountDataViewModel.onEventAsync(AccountEventAsync.InsertAccountAsync)
-                            }
-                        ) { url, token ->
-                            accountDataViewModel.onEvent(AccountEvent.ActivateAccount(url, token))
+                    val initial = remember { mutableStateOf(accounts.value.none { it.url !== null }) }
+                    val nav = rememberNavController()
+                    NavHost(
+                        navController = nav,
+                        startDestination = if(initial.value) Pages.Graphs.AccountSetup.route else Pages.Graphs.Main.route
+                    ) {
+                        navigation(
+                            route = Pages.Graphs.AccountSetup.route,
+                            startDestination = Pages.AccountSetup.Welcome.route
+                        ){
+                            accountSetup(
+                                nav,
+                                {
+                                    accountDataViewModel.onEventAsync(AccountEventAsync.InsertAccountAsync)
+                                },
+                                { id, url, token ->
+                                    accountDataViewModel.onEvent(AccountEvent.ActivateAccount(id, url, token))
+                                }
+                            )
                         }
-                    } else {
-                        Router(accounts.value)
+                        navigation(
+                            route = Pages.Graphs.Main.route,
+                            startDestination = Pages.Main.Home.route
+                        ){
+                            main(nav, accounts.value)
+                        }
                     }
                 }
             }

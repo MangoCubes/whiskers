@@ -10,4 +10,9 @@ sealed class Pages {
         SelectInstance("account_setup_select_instance"),
         Login("account_setup_login")
     }
+
+    enum class Graphs(val route: String) {
+        Main("main"),
+        AccountSetup("account_setup")
+    }
 }
