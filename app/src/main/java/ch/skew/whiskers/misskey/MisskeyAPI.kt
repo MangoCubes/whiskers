@@ -7,6 +7,12 @@ import ch.skew.whiskers.misskey.data.api.AccountIResData
 import ch.skew.whiskers.misskey.data.api.NotesTimelineReqData
 import ch.skew.whiskers.misskey.data.api.PingReqData
 import ch.skew.whiskers.misskey.data.api.PingResData
+import ch.skew.whiskers.misskey.error.api.AuthenticationError
+import ch.skew.whiskers.misskey.error.api.ClientError
+import ch.skew.whiskers.misskey.error.api.ForbiddenError
+import ch.skew.whiskers.misskey.error.api.ImAiError
+import ch.skew.whiskers.misskey.error.api.InternalServerError
+import ch.skew.whiskers.misskey.error.api.UnknownError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -20,7 +26,7 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 
 class MisskeyAPI(
-    private val appSecret: String,
+    private val accessToken: String,
     private val instance: Uri,
 ) {
     suspend fun notesTimeline(limit: NotesTimelineReqData = NotesTimelineReqData()): Result<List<Note>> {
@@ -39,7 +45,7 @@ class MisskeyAPI(
         return try {
             val res = client.post(instance.toString()) {
                 headers {
-                    append(HttpHeaders.Authorization, appSecret)
+                    append(HttpHeaders.Authorization, "Bearer $accessToken")
                 }
                 url {
                     appendPathSegments("api")
@@ -48,7 +54,15 @@ class MisskeyAPI(
                 contentType(ContentType.parse("application/json"))
                 setBody(body)
             }
-            Result.success(res.body())
+            when (res.status.value) {
+                200 -> Result.success(res.body())
+                403 -> Result.failure(ForbiddenError(res.body()))
+                418 -> Result.failure(ImAiError(res.body()))
+                400 -> Result.failure(ClientError(res.body()))
+                401 -> Result.failure(AuthenticationError(res.body()))
+                500 -> Result.failure(InternalServerError(res.body()))
+                else -> Result.failure(UnknownError())
+            }
         } catch (e: Throwable) {
             Result.failure(e)
         }
@@ -69,7 +83,15 @@ class MisskeyAPI(
                     contentType(ContentType.parse("application/json"))
                     setBody(body)
                 }
-                Result.success(res.body())
+                when (res.status.value) {
+                    200 -> Result.success(res.body())
+                    403 -> Result.failure(ForbiddenError(res.body()))
+                    418 -> Result.failure(ImAiError(res.body()))
+                    400 -> Result.failure(ClientError(res.body()))
+                    401 -> Result.failure(AuthenticationError(res.body()))
+                    500 -> Result.failure(InternalServerError(res.body()))
+                    else -> Result.failure(UnknownError())
+                }
             } catch (e: Throwable) {
                 Result.failure(e)
             }
