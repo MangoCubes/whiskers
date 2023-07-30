@@ -2,8 +2,6 @@ package ch.skew.whiskers.misskey.data.api
 
 import kotlinx.serialization.Serializable
 
-class AuthError: Throwable()
-
 @Serializable
 data class AppCreateReqData(
     val name: String,

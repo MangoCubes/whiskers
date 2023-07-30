@@ -1,5 +1,6 @@
 package ch.skew.whiskers.screens.accountSetup
 
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -92,9 +93,10 @@ fun Login(
                 Button(
                     onClick = {
                         scope.launch {
+                            val uri = Uri.parse(instanceUrl)
                             state.value = LoginState.CreatingApp
                             val id = insertAccount().await()
-                            MisskeyLoginClient.create(instanceUrl, id).fold({
+                            MisskeyLoginClient.create(uri, id.toInt()).fold({
                                 state.value = LoginState.GeneratingSession
                                 val generated = it.generate().getOrNull()
                                 if (generated !== null) {
