@@ -4,17 +4,17 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class OnlineStatus(val status: String) {
-    Unknown("unknown"),
-    Online("online"),
-    Active("active"),
-    Offline("offline")
+    unknown("unknown"),
+    online("online"),
+    active("active"),
+    offline("offline")
 }
 
 @Serializable
 enum class TwoFactorBackupCodes(val status: String) {
-    Full("full"),
-    Partial("partial"),
-    None("none")
+    full("full"),
+    partial("partial"),
+    none("none")
 }
 
 @Serializable
@@ -37,6 +37,66 @@ data class UserField(
     val name: String? = null,
     val value: String? = null
 )
+
+@Serializable
+data class UserDetailedNotMe(
+    val id: String,
+    val name: String? = null,
+    val username: String,
+    val host: String? = null,
+    val avatarUrl: String? = null,
+    val avatarBlurhash: String? = null,
+    val isAdmin: Boolean? = false,
+    val isModerator: Boolean? = false,
+    val isBot: Boolean? = null,
+    val isCat: Boolean? = null,
+    val onlineStatus: OnlineStatus? = null,
+    val url: String? = null,
+    val uri: String? = null,
+    val movedToUrl: String? = null,
+    val alsoKnownAs: List<String>? = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null,
+    val lastFetchedAt: String? = null,
+    val bannerBlurHash: String? = null,
+    val isLocked: Boolean,
+    val isSilenced: Boolean,
+    // This does not exist in Firefish.
+//    val isLimited: Boolean,
+    val isSuspended: Boolean,
+    val description: String? = null,
+    val location: String? = null,
+    val birthday: String? = null,
+    val lang: String? = null,
+    val fields: List<UserField>,
+    val followersCount: Int,
+    val followingCount: Int,
+    val notesCount: Int,
+    val pinnedNoteIds: List<String>,
+    val pinnedNotes: List<Note>,
+    val pinnedPageId: String? = null,
+    // Despite the docs, this may be null.
+    val pinnedPage: Page? = null,
+    val publicReactions: Boolean,
+    val twoFactorEnabled: Boolean = false,
+    val usePasswordLessLogin: Boolean = false,
+    val securityKeys: Boolean = false,
+    val isFollowing: Boolean? = null,
+    val isFollowed: Boolean? = null,
+    val hasPendingFollowRequestFromYou: Boolean? = null,
+    val hasPendingFollowRequestToYou: Boolean? = null,
+    val isBlocking: Boolean? = null,
+    val isBlocked: Boolean? = null,
+    val isMuted: Boolean? = null,
+    val isRenoteMuted: Boolean? = null,
+    val memo: String? = null,
+)
+
+/**
+ * Potential TODO: Apparently Firefish API has some properties that do not exist in Misskey API.
+ * Subclasses of UserDetailed may be created, that is inherited by UserDetailed of Misskey and Firefish
+ * But why is this even a thing???? Why does Firefish send avatarColor property????
+ */
 @Serializable
 data class UserDetailed(
     val id: String,

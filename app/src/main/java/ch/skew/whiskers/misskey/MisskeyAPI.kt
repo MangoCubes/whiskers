@@ -12,7 +12,7 @@ import ch.skew.whiskers.misskey.error.api.ClientError
 import ch.skew.whiskers.misskey.error.api.ForbiddenError
 import ch.skew.whiskers.misskey.error.api.ImAiError
 import ch.skew.whiskers.misskey.error.api.InternalServerError
-import ch.skew.whiskers.misskey.error.api.UnknownError
+import ch.skew.whiskers.misskey.error.api.UnknownResponseError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -24,6 +24,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
 
 class MisskeyAPI(
     private val accessToken: String,
@@ -39,7 +40,7 @@ class MisskeyAPI(
     private suspend inline fun <reified REQ, reified RES> queryWithAuth(endpoint: List<String>, body: REQ): Result<RES> {
         val client = HttpClient {
             install(ContentNegotiation) {
-                json()
+                json(Json { ignoreUnknownKeys = true })
             }
         }
         return try {
@@ -61,7 +62,7 @@ class MisskeyAPI(
                 400 -> Result.failure(ClientError(res.body()))
                 401 -> Result.failure(AuthenticationError(res.body()))
                 500 -> Result.failure(InternalServerError(res.body()))
-                else -> Result.failure(UnknownError())
+                else -> Result.failure(UnknownResponseError())
             }
         } catch (e: Throwable) {
             Result.failure(e)
@@ -71,7 +72,7 @@ class MisskeyAPI(
         suspend inline fun <reified REQ, reified RES> queryWithoutAuth(instance: String, endpoint: List<String>, body: REQ): Result<RES> {
             val client = HttpClient {
                 install(ContentNegotiation) {
-                    json()
+                    json(Json { ignoreUnknownKeys = true })
                 }
             }
             return try {
@@ -90,7 +91,7 @@ class MisskeyAPI(
                     400 -> Result.failure(ClientError(res.body()))
                     401 -> Result.failure(AuthenticationError(res.body()))
                     500 -> Result.failure(InternalServerError(res.body()))
-                    else -> Result.failure(UnknownError())
+                    else -> Result.failure(UnknownResponseError())
                 }
             } catch (e: Throwable) {
                 Result.failure(e)
