@@ -2,6 +2,8 @@ package ch.skew.whiskers.misskey
 
 import android.net.Uri
 import ch.skew.whiskers.misskey.data.Note
+import ch.skew.whiskers.misskey.data.api.AccountIReqData
+import ch.skew.whiskers.misskey.data.api.AccountIResData
 import ch.skew.whiskers.misskey.data.api.NotesTimelineReqData
 import ch.skew.whiskers.misskey.data.api.PingReqData
 import ch.skew.whiskers.misskey.data.api.PingResData
@@ -24,6 +26,10 @@ class MisskeyAPI(
     suspend fun notesTimeline(limit: NotesTimelineReqData = NotesTimelineReqData()): Result<List<Note>> {
         return this.queryWithAuth(listOf("notes", "timeline"), limit)
     }
+    suspend fun accountI(): Result<AccountIResData> {
+        return this.queryWithAuth(listOf("i"), AccountIReqData)
+    }
+
     private suspend inline fun <reified REQ, reified RES> queryWithAuth(endpoint: List<String>, body: REQ): Result<RES> {
         val client = HttpClient {
             install(ContentNegotiation) {
