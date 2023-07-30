@@ -27,5 +27,5 @@ data class DriveFile(
     val folderId: String? = null,
     val folder: DriveFolder? = null,
     val userId: String? = null,
-    val user: User? = null
+    val user: UserLite? = null
 )

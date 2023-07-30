@@ -10,7 +10,7 @@ data class Note(
     val text: String? = null,
     val cw: String? = null,
     val userId: String? = null,
-    val user: User,
+    val user: UserLite,
     val replyId: String? = null,
     val renoteId: String? = null,
     val reply: Note? = null,
