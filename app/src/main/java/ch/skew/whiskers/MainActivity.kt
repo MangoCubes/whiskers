@@ -62,8 +62,8 @@ class MainActivity : ComponentActivity() {
                                     {
                                         accountDataViewModel.onEventAsync(AccountEventAsync.InsertAccountAsync)
                                     },
-                                    { id, url, token ->
-                                        accountDataViewModel.onEvent(AccountEvent.ActivateAccount(id, url, token))
+                                    { id, url, appSecret, token ->
+                                        accountDataViewModel.onEvent(AccountEvent.ActivateAccount(id, url, appSecret, token))
                                     }
                                 )
                             }

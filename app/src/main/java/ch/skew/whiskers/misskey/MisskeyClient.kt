@@ -13,10 +13,10 @@ class MisskeyClient(
     }
     companion object {
         fun from(data: AccountData): MisskeyClient? {
-            return if(data.url === null || data.token === null) null
+            return if(data.url === null || data.accessToken === null) null
             else MisskeyClient(
                 MisskeyAPI(
-                    data.token,
+                    data.accessToken,
                     Uri.parse(data.url)
                 )
             )

@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 @Preview
 fun LoginPreview() {
     val scope = rememberCoroutineScope()
-    Login("https://misskey.io", {}, { scope.async { return@async 1L } }) {_, _, _ -> }
+    Login("https://misskey.io", {}, { scope.async { return@async 1L } }) {_, _, _, _-> }
 }
 
 enum class LoginState {
@@ -54,7 +54,7 @@ fun Login(
     instanceUrl: String?,
     goBack: () -> Unit,
     insertAccount: () -> Deferred<Long>,
-    activateAccount: (Int, String, String) -> Unit
+    activateAccount: (Int, String, String, String) -> Unit
 ) {
     if (instanceUrl === null) goBack()
     else {
@@ -102,7 +102,7 @@ fun Login(
                                 if (generated !== null) {
                                     state.value = LoginState.Redirecting
                                     uriHandler.openUri(generated.url)
-                                    activateAccount(id.toInt(), it.instance, it.appSecret)
+                                    activateAccount(id.toInt(), it.instance, it.appSecret, generated.token)
                                     state.value = LoginState.Idle
                                 } else {
                                     state.value = LoginState.Error

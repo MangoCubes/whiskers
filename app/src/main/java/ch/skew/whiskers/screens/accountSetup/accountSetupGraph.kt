@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets
 fun NavGraphBuilder.accountSetup(
     navController: NavController,
     insertAccount: () -> Deferred<Long>,
-    activateAccount: (Int, String, String) -> Unit
+    activateAccount: (Int, String, String, String) -> Unit
 ) {
     composable(route = Pages.AccountSetup.Welcome.route) {
         Welcome { navController.navigate(Pages.AccountSetup.SelectInstance.route) }

@@ -22,7 +22,12 @@ class AccountDataViewModel(
             }
             is AccountEvent.ActivateAccount -> {
                 viewModelScope.launch {
-                    dao.activate(e.id, e.url, e.token)
+                    dao.activate(e.id, e.url, e.appSecret, e.token)
+                }
+            }
+            is AccountEvent.SaveAccessToken -> {
+                viewModelScope.launch {
+                    dao.saveAccessToken(e.id, e.accessToken)
                 }
             }
         }

@@ -38,7 +38,7 @@ data class UserField(
     val value: String? = null
 )
 @Serializable
-data class User(
+data class UserDetailed(
     val id: String,
     val name: String? = null,
     val username: String,
