@@ -45,32 +45,36 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val accounts = accountDataViewModel.accounts.collectAsState()
-                    val initial = remember { mutableStateOf(accounts.value.none { it.url !== null }) }
+                    val accounts = accountDataViewModel.accounts.collectAsState(null)
                     val nav = rememberNavController()
-                    NavHost(
-                        navController = nav,
-                        startDestination = if(initial.value) Pages.Graphs.AccountSetup.route else Pages.Graphs.Main.route
-                    ) {
-                        navigation(
-                            route = Pages.Graphs.AccountSetup.route,
-                            startDestination = Pages.AccountSetup.Welcome.route
-                        ){
-                            accountSetup(
-                                nav,
-                                {
-                                    accountDataViewModel.onEventAsync(AccountEventAsync.InsertAccountAsync)
-                                },
-                                { id, url, token ->
-                                    accountDataViewModel.onEvent(AccountEvent.ActivateAccount(id, url, token))
+                    accounts.value?.let {
+                        val initial = remember { mutableStateOf(it.isEmpty()) }
+                        NavHost(
+                            navController = nav,
+                            startDestination = Pages.Graphs.Main.route
+                        ) {
+                            navigation(
+                                route = Pages.Graphs.AccountSetup.route,
+                                startDestination = if (initial.value) Pages.AccountSetup.Welcome.route else Pages.AccountSetup.SelectInstance.route
+                            ){
+                                accountSetup(
+                                    nav,
+                                    {
+                                        accountDataViewModel.onEventAsync(AccountEventAsync.InsertAccountAsync)
+                                    },
+                                    { id, url, token ->
+                                        accountDataViewModel.onEvent(AccountEvent.ActivateAccount(id, url, token))
+                                    }
+                                )
+                            }
+                            navigation(
+                                route = Pages.Graphs.Main.route,
+                                startDestination = Pages.Main.Home.route
+                            ){
+                                main(nav, it) {
+                                    nav.navigate(Pages.Graphs.AccountSetup.route)
                                 }
-                            )
-                        }
-                        navigation(
-                            route = Pages.Graphs.Main.route,
-                            startDestination = Pages.Main.Home.route
-                        ){
-                            main(nav, accounts.value)
+                            }
                         }
                     }
                 }

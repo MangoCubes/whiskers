@@ -10,12 +10,14 @@ import androidx.navigation.navDeepLink
 import ch.skew.whiskers.Pages
 import ch.skew.whiskers.data.accounts.AccountData
 
+
 fun NavGraphBuilder.main(
     nav: NavController,
-    accounts: List<AccountData>
+    accounts: List<AccountData>,
+    addAccount: () -> Unit,
 ) {
     composable(route = Pages.Main.Home.route) {
-
+        Home(accounts, addAccount)
     }
     composable(
         route = Pages.Main.Verify.route,
@@ -33,6 +35,6 @@ fun NavGraphBuilder.main(
         )
     ) {
         val id = it.arguments?.getInt("id")
-        Verify(id, accounts)
+        Verify(id, accounts, {}, {})
     }
 }

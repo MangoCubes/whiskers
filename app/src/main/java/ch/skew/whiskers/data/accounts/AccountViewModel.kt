@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 class AccountDataViewModel(
     private val dao: AccountDataDao
 ): ViewModel() {
-    val accounts = dao.getAllAccounts().stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
+    val accounts = dao.getAllAccounts().stateIn(viewModelScope, SharingStarted.WhileSubscribed(), null)
 
     fun onEvent(e: AccountEvent) {
         when(e) {
