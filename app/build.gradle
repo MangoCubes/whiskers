@@ -74,6 +74,9 @@ dependencies {
     implementation "io.ktor:ktor-serialization-kotlinx-json:$ktor_version"
     implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.1'
 
+    // Preference datastore
+    implementation "androidx.datastore:datastore-preferences:1.0.0"
+
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation platform('org.jetbrains.kotlin:kotlin-bom:1.8.0')
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
