@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class NotesTimelineReqData(
+    val i: String,
     val limit: Int? = 10,
     val sinceId: String? = null,
     val untilId: String? = null,

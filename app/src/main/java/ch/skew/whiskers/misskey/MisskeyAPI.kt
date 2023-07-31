@@ -16,21 +16,18 @@ import ch.skew.whiskers.misskey.error.api.UnknownResponseError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 class MisskeyAPI(
-    private val accessToken: String,
     private val instance: Uri,
 ) {
-    suspend fun notesTimeline(limit: NotesTimelineReqData = NotesTimelineReqData()): Result<List<Note>> {
+    suspend fun notesTimeline(limit: NotesTimelineReqData): Result<List<Note>> {
         return this.queryWithAuth(listOf("notes", "timeline"), limit)
     }
     suspend fun accountI(): Result<AccountIResData> {
@@ -45,9 +42,6 @@ class MisskeyAPI(
         }
         return try {
             val res = client.post(instance.toString()) {
-                headers {
-                    append(HttpHeaders.Authorization, "Bearer $accessToken")
-                }
                 url {
                     appendPathSegments("api")
                     appendPathSegments(endpoint)
@@ -55,6 +49,7 @@ class MisskeyAPI(
                 contentType(ContentType.parse("application/json"))
                 setBody(body)
             }
+            println(res.body<String>())
             when (res.status.value) {
                 200 -> Result.success(res.body())
                 403 -> Result.failure(ForbiddenError(res.body()))
