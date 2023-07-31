@@ -71,9 +71,12 @@ class MainActivity : ComponentActivity() {
                                 route = Pages.Graphs.Main.route,
                                 startDestination = Pages.Main.Home.route
                             ){
-                                main(nav, it) {
-                                    nav.navigate(Pages.Graphs.AccountSetup.route)
-                                }
+                                main(
+                                    nav,
+                                    it,
+                                    { nav.navigate(Pages.Graphs.AccountSetup.route) },
+                                    { id, token -> accountDataViewModel.onEvent(AccountEvent.SaveAccessToken(id, token)) }
+                                )
                             }
                         }
                     }

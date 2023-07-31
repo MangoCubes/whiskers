@@ -15,6 +15,7 @@ fun NavGraphBuilder.main(
     nav: NavController,
     accounts: List<AccountData>,
     addAccount: () -> Unit,
+    addAccessToken: (Int, String) -> Unit,
 ) {
     composable(route = Pages.Main.Home.route) {
         Home(accounts, addAccount)
@@ -35,6 +36,11 @@ fun NavGraphBuilder.main(
         )
     ) {
         val id = it.arguments?.getInt("id")
-        Verify(id, accounts, {}, {})
+        Verify(
+            id,
+            accounts,
+            addAccessToken,
+            addAccount
+        ) { nav.popBackStack(Pages.Main.Home.route, false) }
     }
 }

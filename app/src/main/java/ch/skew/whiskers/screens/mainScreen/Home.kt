@@ -10,6 +10,9 @@ fun Home(
     addAccount: () -> Unit
 ) {
     LaunchedEffect(Unit) {
-        if(accounts.isEmpty()) addAccount()
+        if(accounts.isEmpty()) {
+            addAccount()
+            return@LaunchedEffect
+        }
     }
 }
