@@ -4,9 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AuthenticationErrorData(
-    val code: String,
-    val message: String,
-    val id: String
+    val error: CommonErrorData
 )
 
 class AuthenticationError(
