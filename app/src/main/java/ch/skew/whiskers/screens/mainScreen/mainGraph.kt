@@ -18,7 +18,7 @@ fun NavGraphBuilder.main(
     addAccessToken: (Int, String) -> Unit,
 ) {
     composable(route = Pages.Main.Home.route) {
-        Home(accounts, addAccount)
+        AccountLoader(accounts, addAccount)
     }
     composable(
         route = Pages.Main.Verify.route,
