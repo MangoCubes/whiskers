@@ -41,6 +41,10 @@ fun NavGraphBuilder.main(
             accounts,
             addAccessToken,
             addAccount
-        ) { nav.popBackStack(Pages.Main.Home.route, false) }
+        ) {
+            nav.navigate(Pages.Main.Home.route) {
+                popUpTo(0)
+            }
+        }
     }
 }

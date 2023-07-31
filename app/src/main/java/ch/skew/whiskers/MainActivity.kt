@@ -48,14 +48,19 @@ class MainActivity : ComponentActivity() {
                     val accounts = accountDataViewModel.accounts.collectAsState(null)
                     val nav = rememberNavController()
                     accounts.value?.let {
-                        val initial = remember { mutableStateOf(it.isEmpty()) }
+                        val initial = remember {
+                            mutableStateOf(
+                                it.isEmpty() ||
+                                it.all { it.accessToken === null }
+                            )
+                        }
                         NavHost(
                             navController = nav,
-                            startDestination = Pages.Graphs.Main.route
+                            startDestination = if (initial.value) Pages.Graphs.AccountSetup.route else Pages.Graphs.Main.route
                         ) {
                             navigation(
                                 route = Pages.Graphs.AccountSetup.route,
-                                startDestination = if (initial.value) Pages.AccountSetup.Welcome.route else Pages.AccountSetup.SelectInstance.route
+                                startDestination = Pages.AccountSetup.Welcome.route
                             ){
                                 accountSetup(
                                     nav,
@@ -74,7 +79,7 @@ class MainActivity : ComponentActivity() {
                                 main(
                                     nav,
                                     it,
-                                    { nav.navigate(Pages.Graphs.AccountSetup.route) },
+                                    { nav.navigate(Pages.AccountSetup.SelectInstance.route) },
                                     { id, token -> accountDataViewModel.onEvent(AccountEvent.SaveAccessToken(id, token)) }
                                 )
                             }
