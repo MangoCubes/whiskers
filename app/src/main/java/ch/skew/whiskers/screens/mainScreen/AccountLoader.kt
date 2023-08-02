@@ -28,5 +28,5 @@ fun AccountLoader(
         val client = MisskeyClient.from(accountData)
         currentClient.value = client
     }
-    currentClient.value?.let { Home(accounts, it) }
+    currentClient.value?.let { Home(accounts, it, addAccount) }
 }

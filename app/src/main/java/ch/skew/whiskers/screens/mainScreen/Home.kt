@@ -52,14 +52,15 @@ sealed class UserQuery {
 @Composable
 @Preview
 fun HomePreview() {
-    Home(listOf(), MisskeyClient("", MisskeyAPI(Uri.parse("")), ""))
+    Home(listOf(), MisskeyClient("", MisskeyAPI(Uri.parse("")), ""), {})
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home(
     accountData: List<MisskeyAccountData>,
-    account: MisskeyClient
+    account: MisskeyClient,
+    addAccount: () -> Unit
 ) {
     val userQuery = remember { mutableStateOf<UserQuery>(UserQuery.Querying) }
     val noteQuery = remember { mutableStateOf(QueryStatus.Querying) }
@@ -95,7 +96,7 @@ fun Home(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
 
     ModalNavigationDrawer(
-        drawerContent = { Drawer(account, accountData) },
+        drawerContent = { Drawer(account, accountData, addAccount) },
         gesturesEnabled = true,
         drawerState = drawerState
     ) {
