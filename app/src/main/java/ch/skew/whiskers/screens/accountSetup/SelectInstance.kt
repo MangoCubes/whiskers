@@ -106,7 +106,13 @@ fun SelectInstance(
                             .size(120.dp)
                             .clip(CircleShape),
                         painter = rememberAsyncImagePainter(
-                            instanceUrl.value.toString() + "/static-assets/icons/192.png"
+                            instanceUrl.value
+                                .buildUpon()
+                                .appendPath("static-assets")
+                                .appendPath("icons")
+                                .appendPath("192.png")
+                                .build()
+                                .toString()
                         ),
                         contentDescription = instanceUrl.value.toString()
                     )
@@ -146,12 +152,8 @@ fun SelectInstance(
                         }
                         Button(
                             onClick = {
-                                val url = Uri.Builder()
-                                    .scheme("https")
-                                    .authority(tempUrl.value)
-                                    .build()
-                                    .toString()
-                                onSelect(url)
+                                val url = Uri.parse(tempUrl.value)
+                                onSelect(url.authority ?: "localhost")
                             },
                             enabled = status.value !== QueryStatus.Querying
                         ) {
@@ -162,9 +164,9 @@ fun SelectInstance(
                 }
             } else {
                 val wellKnown = listOf(
-                    WellKnownInstances("https://misskey.io", "Misskey", "Most popular Misskey instance"),
-                    WellKnownInstances("https://calckey.world", "Calckey.world", "Well known Firefish instance"),
-                    WellKnownInstances("https://misskey.design", "Misskey Design", "Misskey instance for artists")
+                    WellKnownInstances("misskey.io", "Misskey", "Most popular Misskey instance"),
+                    WellKnownInstances("calckey.world", "Calckey.world", "Well known Firefish instance"),
+                    WellKnownInstances("misskey.design", "Misskey Design", "Misskey instance for artists")
                 )
                 val scroll = rememberScrollState()
                 Column(
@@ -181,7 +183,16 @@ fun SelectInstance(
                                     modifier = Modifier
                                         .size(60.dp)
                                         .clip(CircleShape),
-                                    painter = rememberAsyncImagePainter(it.url + "/static-assets/icons/192.png"),
+                                    painter = rememberAsyncImagePainter(
+                                        Uri.Builder()
+                                            .scheme("https")
+                                            .authority(it.url)
+                                            .appendPath("static-assets")
+                                            .appendPath("icons")
+                                            .appendPath("192.png")
+                                            .build()
+                                            .toString()
+                                    ),
                                     contentDescription = it.name
                                 )
                             },

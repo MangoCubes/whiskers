@@ -1,6 +1,5 @@
 package ch.skew.whiskers.misskey
 
-import android.net.Uri
 import ch.skew.whiskers.classes.MisskeyAccountData
 import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.api.AccountIResData
@@ -36,9 +35,7 @@ class MisskeyClient(
         fun from(data: MisskeyAccountData): MisskeyClient {
             return MisskeyClient(
                 data.accessToken,
-                MisskeyAPI(
-                    Uri.parse(data.url)
-                ),
+                MisskeyAPI(data.host),
                 data.username
             )
         }

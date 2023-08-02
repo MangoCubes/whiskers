@@ -1,6 +1,5 @@
 package ch.skew.whiskers.screens.mainScreen
 
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -52,7 +51,7 @@ sealed class UserQuery {
 @Composable
 @Preview
 fun HomePreview() {
-    Home(listOf(), MisskeyClient("", MisskeyAPI(Uri.parse("")), ""), {})
+    Home(listOf(), MisskeyClient("", MisskeyAPI(""), ""), {})
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

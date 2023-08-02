@@ -1,6 +1,5 @@
 package ch.skew.whiskers.misskey
 
-import android.net.Uri
 import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.api.AccountIReqData
 import ch.skew.whiskers.misskey.data.api.AccountIResData
@@ -21,11 +20,12 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.appendPathSegments
 import io.ktor.http.contentType
+import io.ktor.http.set
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 class MisskeyAPI(
-    private val instance: Uri,
+    private val instance: String,
 ) {
     suspend fun notesTimeline(limit: NotesTimelineReqData): Result<List<Note>> {
         return this.queryWithAuth(listOf("notes", "timeline"), limit)
@@ -41,8 +41,9 @@ class MisskeyAPI(
             }
         }
         return try {
-            val res = client.post(instance.toString()) {
+            val res = client.post {
                 url {
+                    set(scheme = "https", host = instance)
                     appendPathSegments("api")
                     appendPathSegments(endpoint)
                 }
@@ -71,8 +72,9 @@ class MisskeyAPI(
                 }
             }
             return try {
-                val res = client.post(instance) {
+                val res = client.post {
                     url {
+                        set(scheme = "https", host = instance)
                         appendPathSegments("api")
                         appendPathSegments(endpoint)
                     }

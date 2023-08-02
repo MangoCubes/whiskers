@@ -1,6 +1,5 @@
 package ch.skew.whiskers.screens.mainScreen
 
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -37,7 +36,7 @@ val example = listOf(
 @Composable
 @Preview
 fun DrawerPreview() {
-    Drawer(account = MisskeyClient(accessToken = "", api = MisskeyAPI(Uri.parse("")), username = "User1"), example, {})
+    Drawer(account = MisskeyClient(accessToken = "", api = MisskeyAPI(""), username = "User1"), example, {})
 }
 
 val itemModifier = Modifier.padding(horizontal = 12.dp)
@@ -72,7 +71,7 @@ fun Drawer(
                             buildAnnotatedString {
                                 append(it.username)
                                 withStyle(SpanStyle(color = Color.Gray)) {
-                                    append(" (${it.getHostname()})")
+                                    append(" (${it.host})")
                                 }
                             }
                         ) },

@@ -51,12 +51,12 @@ enum class LoginState {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Login(
-    instanceUrl: String?,
+    host: String?,
     goBack: () -> Unit,
     insertAccount: () -> Deferred<Long>,
     activateAccount: (Int, String, String, String) -> Unit
 ) {
-    if (instanceUrl === null) goBack()
+    if (host === null) goBack()
     else {
         val scope = rememberCoroutineScope()
         val uriHandler = LocalUriHandler.current
@@ -86,14 +86,24 @@ fun Login(
                         .size(120.dp)
                         .clip(CircleShape),
                     painter = rememberAsyncImagePainter(
-                        "$instanceUrl/static-assets/icons/192.png"
+                        Uri.Builder()
+                            .scheme("https")
+                            .authority(host)
+                            .appendPath("static-assets")
+                            .appendPath("icons")
+                            .appendPath("192.png")
+                            .build()
+                            .toString()
                     ),
-                    contentDescription = instanceUrl
+                    contentDescription = host
                 )
                 Button(
                     onClick = {
                         scope.launch {
-                            val uri = Uri.parse(instanceUrl)
+                            val uri = Uri.Builder()
+                                .scheme("https")
+                                .authority(host)
+                                .build()
                             state.value = LoginState.CreatingApp
                             val id = insertAccount().await()
                             MisskeyLoginClient.create(uri, id.toInt()).fold({
@@ -102,7 +112,7 @@ fun Login(
                                 if (generated !== null) {
                                     state.value = LoginState.Redirecting
                                     uriHandler.openUri(generated.url)
-                                    activateAccount(id.toInt(), it.instance, it.appSecret, generated.token)
+                                    activateAccount(id.toInt(), uri.authority ?: "localhost", it.appSecret, generated.token)
                                     state.value = LoginState.Idle
                                 } else {
                                     state.value = LoginState.Error
