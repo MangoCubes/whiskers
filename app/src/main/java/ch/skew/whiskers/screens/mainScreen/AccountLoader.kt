@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import ch.skew.whiskers.data.WhiskersSettings
 import ch.skew.whiskers.data.accounts.AccountData
+import ch.skew.whiskers.classes.MisskeyAccountData
 import ch.skew.whiskers.misskey.MisskeyClient
 import kotlinx.coroutines.flow.first
 
@@ -16,12 +17,9 @@ fun AccountLoader(
     addAccount: () -> Unit
 ) {
     val currentClient = remember { mutableStateOf<MisskeyClient?>(null) }
-    val error = remember { mutableStateOf(false) }
     val context = LocalContext.current
     LaunchedEffect(Unit) {
-        val filtered = accounts.filter {
-            it.accessToken !== null
-        }
+        val filtered = accounts.mapNotNull { MisskeyAccountData.from(it) }
         if(filtered.isEmpty()) {
             addAccount()
             return@LaunchedEffect
@@ -30,11 +28,7 @@ fun AccountLoader(
             filtered.find { it.id == id }
         } ?: filtered[0]
         val client = MisskeyClient.from(accountData)
-        if(client !== null) {
-            currentClient.value = client
-        } else {
-            error.value = true
-        }
+        currentClient.value = client
     }
     currentClient.value?.let { Home(it) }
 }
