@@ -28,8 +28,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import ch.skew.whiskers.classes.QueryStatus
 import ch.skew.whiskers.misskey.MisskeyAPI
 import ch.skew.whiskers.misskey.MisskeyClient
+import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.UserDetailed
 import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
@@ -53,20 +55,37 @@ fun HomePreview() {
 fun Home(
     account: MisskeyClient
 ) {
-    val query = remember { mutableStateOf<UserQuery>(UserQuery.Querying) }
+    val userQuery = remember { mutableStateOf<UserQuery>(UserQuery.Querying) }
+    val noteQuery = remember { mutableStateOf(QueryStatus.Querying) }
+    val notes = remember { mutableListOf<Note>() }
     val scope = rememberCoroutineScope()
 
     suspend fun loadUserData() {
-        query.value = UserQuery.Querying
+        userQuery.value = UserQuery.Querying
         account.getDetailedUserData().fold(
-            { query.value = UserQuery.Success(it) },
-            { query.value = UserQuery.Error(it) }
+            { userQuery.value = UserQuery.Success(it) },
+            { userQuery.value = UserQuery.Error(it) }
+        )
+    }
+
+    suspend fun loadNotes() {
+        noteQuery.value = QueryStatus.Querying
+        account.getNotesTimeline().fold(
+            {
+                notes.addAll(it)
+                noteQuery.value = QueryStatus.Success
+            },
+            {
+                noteQuery.value = QueryStatus.Error
+            }
         )
     }
 
     LaunchedEffect(Unit) {
-        loadUserData()
+        launch { loadUserData() }
+        launch { loadNotes() }
     }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -74,7 +93,7 @@ fun Home(
                     headlineText = { Text("Home") },
                     supportingText = { Text(account.username) },
                     leadingContent = {
-                        query.value.let {
+                        userQuery.value.let {
                             when(it){
                                 is UserQuery.Success -> {
                                     Image(
