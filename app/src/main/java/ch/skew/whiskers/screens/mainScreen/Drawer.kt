@@ -17,6 +17,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.skew.whiskers.classes.MisskeyAccountData
@@ -64,7 +68,14 @@ fun Drawer(
             Column {
                 accountData.forEach {
                     NavigationDrawerItem(
-                        label = { Text(it.username) },
+                        label = { Text(
+                            buildAnnotatedString {
+                                append(it.username)
+                                withStyle(SpanStyle(color = Color.Gray)) {
+                                    append(" (${it.getHostname()})")
+                                }
+                            }
+                        ) },
                         selected = it.username == account.username,
                         onClick = {},
                         modifier = itemModifier
