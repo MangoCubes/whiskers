@@ -19,20 +19,22 @@ fun AccountLoader(
     val error = remember { mutableStateOf(false) }
     val context = LocalContext.current
     LaunchedEffect(Unit) {
-        val filtered = accounts.filter { it.accessToken !== null }
+        val filtered = accounts.filter {
+            it.accessToken !== null
+        }
         if(filtered.isEmpty()) {
             addAccount()
             return@LaunchedEffect
         }
         val accountData = WhiskersSettings(context).getLastAccount.first()?.let { id ->
-            accounts.find { it.id == id }
-        }  ?: accounts[0]
+            filtered.find { it.id == id }
+        } ?: filtered[0]
         val client = MisskeyClient.from(accountData)
         if(client !== null) {
             currentClient.value = client
-            println(client.getNotesTimeline())
         } else {
             error.value = true
         }
     }
+    currentClient.value?.let { Home(it) }
 }
