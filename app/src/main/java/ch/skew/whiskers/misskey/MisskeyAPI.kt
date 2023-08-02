@@ -30,8 +30,8 @@ class MisskeyAPI(
     suspend fun notesTimeline(limit: NotesTimelineReqData): Result<List<Note>> {
         return this.queryWithAuth(listOf("notes", "timeline"), limit)
     }
-    suspend fun accountI(): Result<AccountIResData> {
-        return this.queryWithAuth(listOf("i"), AccountIReqData)
+    suspend fun accountI(token: String): Result<AccountIResData> {
+        return this.queryWithAuth(listOf("i"), AccountIReqData(token))
     }
 
     private suspend inline fun <reified REQ, reified RES> queryWithAuth(endpoint: List<String>, body: REQ): Result<RES> {

@@ -13,7 +13,7 @@ class MisskeyClient(
     val username: String
 ) {
     suspend fun getDetailedUserData(): Result<AccountIResData> {
-        return this.api.accountI()
+        return this.api.accountI(accessToken)
     }
 
     suspend fun getNotesTimeline(
