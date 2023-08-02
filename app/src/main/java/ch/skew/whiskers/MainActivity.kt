@@ -69,7 +69,7 @@ class MainActivity : ComponentActivity() {
                                     it,
                                     { nav.navigate(Pages.AccountSetup.SelectInstance.route) },
                                     { host, appSecret, accessToken, username ->
-                                        accountDataViewModel.onEvent(
+                                        accountDataViewModel.onEventAsync(
                                             AccountEvent.AddAccount(host, appSecret, accessToken, username)
                                         )
                                     }

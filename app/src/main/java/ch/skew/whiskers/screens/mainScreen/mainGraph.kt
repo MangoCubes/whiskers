@@ -9,13 +9,14 @@ import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import ch.skew.whiskers.Pages
 import ch.skew.whiskers.data.accounts.AccountData
+import kotlinx.coroutines.Deferred
 
 
 fun NavGraphBuilder.main(
     nav: NavController,
     accounts: List<AccountData>,
     addAccount: () -> Unit,
-    saveAccount: (String, String, String, String) -> Unit,
+    saveAccount: (String, String, String, String) -> Deferred<Throwable?>,
 ) {
     composable(route = Pages.Main.Home.route) {
         AccountLoader(accounts, addAccount)
