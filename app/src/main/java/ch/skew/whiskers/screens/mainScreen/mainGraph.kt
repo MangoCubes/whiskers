@@ -8,7 +8,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import ch.skew.whiskers.Pages
-import ch.skew.whiskers.classes.MisskeyAccountData
 import ch.skew.whiskers.data.accounts.AccountData
 
 
@@ -16,10 +15,10 @@ fun NavGraphBuilder.main(
     nav: NavController,
     accounts: List<AccountData>,
     addAccount: () -> Unit,
-    addAccessToken: (Int, String, String) -> Unit,
+    saveAccount: (String, String, String, String) -> Unit,
 ) {
     composable(route = Pages.Main.Home.route) {
-        AccountLoader(accounts.mapNotNull { MisskeyAccountData.from(it) }, addAccount)
+        AccountLoader(accounts, addAccount)
     }
     composable(
         route = Pages.Main.Verify.route,
@@ -39,8 +38,7 @@ fun NavGraphBuilder.main(
         val id = it.arguments?.getInt("id")
         Verify(
             id,
-            accounts,
-            addAccessToken,
+            saveAccount,
             addAccount
         ) {
             nav.navigate(Pages.Main.Home.route) {

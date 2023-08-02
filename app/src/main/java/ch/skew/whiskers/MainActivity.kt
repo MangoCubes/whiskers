@@ -19,7 +19,6 @@ import androidx.navigation.compose.rememberNavController
 import ch.skew.whiskers.data.WhiskersDB
 import ch.skew.whiskers.data.accounts.AccountDataViewModel
 import ch.skew.whiskers.data.accounts.AccountEvent
-import ch.skew.whiskers.data.accounts.AccountEventAsync
 import ch.skew.whiskers.screens.accountSetup.accountSetup
 import ch.skew.whiskers.screens.mainScreen.main
 import ch.skew.whiskers.ui.theme.WhiskersTheme
@@ -49,10 +48,7 @@ class MainActivity : ComponentActivity() {
                     val nav = rememberNavController()
                     accounts.value?.let {
                         val initial = remember {
-                            mutableStateOf(
-                                it.isEmpty() ||
-                                it.all { it.accessToken === null }
-                            )
+                            mutableStateOf(it.isEmpty())
                         }
                         NavHost(
                             navController = nav,
@@ -62,15 +58,7 @@ class MainActivity : ComponentActivity() {
                                 route = Pages.Graphs.AccountSetup.route,
                                 startDestination = Pages.AccountSetup.Welcome.route
                             ){
-                                accountSetup(
-                                    nav,
-                                    {
-                                        accountDataViewModel.onEventAsync(AccountEventAsync.InsertAccountAsync)
-                                    },
-                                    { id, url, appSecret, token ->
-                                        accountDataViewModel.onEvent(AccountEvent.ActivateAccount(id, url, appSecret, token))
-                                    }
-                                )
+                                accountSetup(nav)
                             }
                             navigation(
                                 route = Pages.Graphs.Main.route,
@@ -80,7 +68,11 @@ class MainActivity : ComponentActivity() {
                                     nav,
                                     it,
                                     { nav.navigate(Pages.AccountSetup.SelectInstance.route) },
-                                    { id, token, username -> accountDataViewModel.onEvent(AccountEvent.SaveAccessToken(id, token, username)) }
+                                    { host, appSecret, accessToken, username ->
+                                        accountDataViewModel.onEvent(
+                                            AccountEvent.AddAccount(host, appSecret, accessToken, username)
+                                        )
+                                    }
                                 )
                             }
                         }

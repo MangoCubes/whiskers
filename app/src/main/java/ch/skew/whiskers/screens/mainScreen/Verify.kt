@@ -21,49 +21,54 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ch.skew.whiskers.data.accounts.AccountData
+import ch.skew.whiskers.data.WhiskersSettings
 import ch.skew.whiskers.misskey.MisskeyLoginClient
+import kotlinx.coroutines.flow.first
 
 enum class QueryStatus {
     AccountNotFound,
     Querying,
     Success,
-    NotAuthorised
+    NotAuthorised,
+    Duplicate
 }
 @Composable
 @Preview
 fun VerifyPreview(){
-    Verify(1, listOf(), {_, _, _ -> }, {}, {})
+    Verify(1, {_, _, _, _ -> }, {}, {})
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Verify(
     id: Int?,
-    accounts: List<AccountData>,
-    addAccessToken: (Int, String, String) -> Unit,
+    saveAccount: (String, String, String, String) -> Unit,
     retry: () -> Unit,
     goHome: () -> Unit
 ) {
     val state = remember { mutableStateOf(QueryStatus.Querying) }
     val message = remember { mutableStateOf("Verifying account...") }
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
         if (id === null) {
             state.value = QueryStatus.AccountNotFound
             message.value = "Invalid access."
             return@LaunchedEffect
         }
-        val account = accounts.find { it.id == id }?.let { MisskeyLoginClient.from(it) }
+        val settings = WhiskersSettings(context)
+        val account = settings.getAuthInProgress.first()
         if(account === null) {
             state.value = QueryStatus.AccountNotFound
             message.value = "Account has not been added to the app."
             return@LaunchedEffect
         } else {
-            account.userkey().fold(
+            val loginClient = MisskeyLoginClient(account.host, account.appSecret, account.token)
+            loginClient.userkey().fold(
                 {
-                    addAccessToken(id, it.accessToken, it.user.username)
+                    saveAccount(account.host, account.appSecret, it.accessToken, it.user.username)
                     state.value = QueryStatus.Success
                     message.value = "Account successfully added! Welcome back ${it.user.name}."
                 },

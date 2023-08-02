@@ -42,9 +42,9 @@ class MisskeyLoginClient(
             )
     }
     companion object {
-        suspend fun create(instance: Uri, id: Int): Result<MisskeyLoginClient> {
+        suspend fun create(instance: Uri): Result<MisskeyLoginClient> {
             val instanceStr = instance.authority ?: "localhost"
-            val body = AppCreateReqData("Whiskers", "Authorisation for Whiskers app", listOf(), "whiskers://verify/$id")
+            val body = AppCreateReqData("Whiskers", "Authorisation for Whiskers app", listOf(), "whiskers://verify")
             MisskeyAPI.queryWithoutAuth<_, AppCreateResData>(instanceStr, listOf("app", "create"), body)
                 .fold(
                     {
@@ -55,11 +55,6 @@ class MisskeyLoginClient(
                         return Result.failure(it)
                     }
                 )
-        }
-        fun from(account: AccountData): MisskeyLoginClient? {
-            return if(account.url !== null && account.appSecret !== null && account.token !== null)
-                MisskeyLoginClient(account.url, account.appSecret, account.token)
-            else null
         }
     }
 }

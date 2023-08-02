@@ -24,20 +24,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import ch.skew.whiskers.data.AuthInProgress
+import ch.skew.whiskers.data.WhiskersSettings
 import ch.skew.whiskers.misskey.MisskeyLoginClient
 import coil.compose.rememberAsyncImagePainter
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 
 @Composable
 @Preview
 fun LoginPreview() {
-    val scope = rememberCoroutineScope()
-    Login("https://misskey.io", {}, { scope.async { return@async 1L } }) {_, _, _, _-> }
+    Login("https://misskey.io") {}
 }
 
 enum class LoginState {
@@ -53,12 +53,11 @@ enum class LoginState {
 fun Login(
     host: String?,
     goBack: () -> Unit,
-    insertAccount: () -> Deferred<Long>,
-    activateAccount: (Int, String, String, String) -> Unit
 ) {
     if (host === null) goBack()
     else {
         val scope = rememberCoroutineScope()
+        val context = LocalContext.current
         val uriHandler = LocalUriHandler.current
         Scaffold(
             topBar = {
@@ -105,14 +104,16 @@ fun Login(
                                 .authority(host)
                                 .build()
                             state.value = LoginState.CreatingApp
-                            val id = insertAccount().await()
-                            MisskeyLoginClient.create(uri, id.toInt()).fold({
+                            MisskeyLoginClient.create(uri).fold({
                                 state.value = LoginState.GeneratingSession
                                 val generated = it.generate().getOrNull()
                                 if (generated !== null) {
                                     state.value = LoginState.Redirecting
+                                    val settings = WhiskersSettings(context)
+                                    settings.saveAuthInProgress(
+                                        AuthInProgress(it.appSecret, generated.token, it.instance)
+                                    )
                                     uriHandler.openUri(generated.url)
-                                    activateAccount(id.toInt(), uri.authority ?: "localhost", it.appSecret, generated.token)
                                     state.value = LoginState.Idle
                                 } else {
                                     state.value = LoginState.Error

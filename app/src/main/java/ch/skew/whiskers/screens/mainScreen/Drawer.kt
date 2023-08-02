@@ -22,21 +22,21 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ch.skew.whiskers.classes.MisskeyAccountData
+import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.misskey.MisskeyAPI
 import ch.skew.whiskers.misskey.MisskeyClient
 
 val example = listOf(
-    MisskeyAccountData(1, "https://example1.com", "", "User1"),
-    MisskeyAccountData(2, "https://example2.com", "", "User2"),
-    MisskeyAccountData(3, "https://example3.com", "", "User3"),
-    MisskeyAccountData(4, "https://example4.com", "", "User4"),
+    AccountData("example1.com", "", "", "User1"),
+    AccountData("example2.com", "", "", "User2"),
+    AccountData("example3.com", "", "", "User3"),
+    AccountData("example4.com", "", "", "User4"),
 )
 
 @Composable
 @Preview
 fun DrawerPreview() {
-    Drawer(account = MisskeyClient(accessToken = "", api = MisskeyAPI(""), username = "User1"), example, {})
+    Drawer(account = MisskeyClient(accessToken = "", api = MisskeyAPI(""), username = "User1"), example) {}
 }
 
 val itemModifier = Modifier.padding(horizontal = 12.dp)
@@ -45,7 +45,7 @@ val itemModifier = Modifier.padding(horizontal = 12.dp)
 @Composable
 fun Drawer(
     account: MisskeyClient,
-    accountData: List<MisskeyAccountData>,
+    accountData: List<AccountData>,
     addAccount: () -> Unit
 ) {
     val expandAccounts = remember { mutableStateOf(false) }

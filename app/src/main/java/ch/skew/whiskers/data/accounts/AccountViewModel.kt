@@ -2,8 +2,6 @@ package ch.skew.whiskers.data.accounts
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -17,27 +15,12 @@ class AccountDataViewModel(
         when(e) {
             is AccountEvent.DeleteAccount -> {
                 viewModelScope.launch {
-                    dao.delete(e.id)
+                    dao.delete(e.host, e.username)
                 }
             }
-            is AccountEvent.ActivateAccount -> {
+            is AccountEvent.AddAccount -> {
                 viewModelScope.launch {
-                    dao.activate(e.id, e.url, e.appSecret, e.token)
-                }
-            }
-            is AccountEvent.SaveAccessToken -> {
-                viewModelScope.launch {
-                    dao.saveAccessToken(e.id, e.accessToken, e.username)
-                }
-            }
-        }
-    }
-
-    fun onEventAsync(e: AccountEventAsync): Deferred<Long> {
-        when(e) {
-            is AccountEventAsync.InsertAccountAsync -> {
-                return viewModelScope.async {
-                    return@async dao.insert()
+                    dao.insert(e.host, e.appSecret, e.accessToken, e.username)
                 }
             }
         }

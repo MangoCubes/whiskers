@@ -1,6 +1,6 @@
 package ch.skew.whiskers.misskey
 
-import ch.skew.whiskers.classes.MisskeyAccountData
+import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.api.AccountIResData
 import ch.skew.whiskers.misskey.data.api.NotesTimelineReqData
@@ -32,7 +32,7 @@ class MisskeyClient(
     }
 
     companion object {
-        fun from(data: MisskeyAccountData): MisskeyClient {
+        fun from(data: AccountData): MisskeyClient {
             return MisskeyClient(
                 data.accessToken,
                 MisskeyAPI(data.host),

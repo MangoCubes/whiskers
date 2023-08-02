@@ -33,8 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ch.skew.whiskers.classes.MisskeyAccountData
 import ch.skew.whiskers.classes.QueryStatus
+import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.misskey.MisskeyAPI
 import ch.skew.whiskers.misskey.MisskeyClient
 import ch.skew.whiskers.misskey.data.Note
@@ -57,7 +57,7 @@ fun HomePreview() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Home(
-    accountData: List<MisskeyAccountData>,
+    accountData: List<AccountData>,
     account: MisskeyClient,
     addAccount: () -> Unit
 ) {
