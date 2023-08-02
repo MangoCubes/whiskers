@@ -35,7 +35,7 @@ enum class QueryState {
 @Composable
 @Preview
 fun VerifyPreview(){
-    Verify(1, listOf(), {_, _ -> }, {}, {})
+    Verify(1, listOf(), {_, _, _ -> }, {}, {})
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,7 +43,7 @@ fun VerifyPreview(){
 fun Verify(
     id: Int?,
     accounts: List<AccountData>,
-    addAccessToken: (Int, String) -> Unit,
+    addAccessToken: (Int, String, String) -> Unit,
     retry: () -> Unit,
     goHome: () -> Unit
 ) {
@@ -63,7 +63,7 @@ fun Verify(
         } else {
             account.userkey().fold(
                 {
-                    addAccessToken(id, it.accessToken)
+                    addAccessToken(id, it.accessToken, it.user.username)
                     state.value = QueryState.Success
                     message.value = "Account successfully added! Welcome back ${it.user.name}."
                 },

@@ -15,5 +15,7 @@ data class AccountData(
     @ColumnInfo(name = "token")
     val token: String?,
     @ColumnInfo(name = "access_token")
-    val accessToken: String?
+    val accessToken: String?,
+    @ColumnInfo(name = "username")
+    val username: String?
 )

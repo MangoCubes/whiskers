@@ -9,7 +9,8 @@ import ch.skew.whiskers.misskey.data.api.NotesTimelineReqData
 
 class MisskeyClient(
     private val accessToken: String,
-    private val api: MisskeyAPI
+    private val api: MisskeyAPI,
+    val username: String
 ) {
     suspend fun getDetailedUserData(): Result<AccountIResData> {
         return this.api.accountI()
@@ -33,12 +34,13 @@ class MisskeyClient(
 
     companion object {
         fun from(data: AccountData): MisskeyClient? {
-            return if(data.url === null || data.accessToken === null) null
+            return if(data.url === null || data.accessToken === null || data.username === null) null
             else MisskeyClient(
                 data.accessToken,
                 MisskeyAPI(
                     Uri.parse(data.url)
-                )
+                ),
+                data.username
             )
         }
     }

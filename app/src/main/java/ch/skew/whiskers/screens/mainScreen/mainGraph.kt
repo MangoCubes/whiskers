@@ -15,7 +15,7 @@ fun NavGraphBuilder.main(
     nav: NavController,
     accounts: List<AccountData>,
     addAccount: () -> Unit,
-    addAccessToken: (Int, String) -> Unit,
+    addAccessToken: (Int, String, String) -> Unit,
 ) {
     composable(route = Pages.Main.Home.route) {
         AccountLoader(accounts, addAccount)

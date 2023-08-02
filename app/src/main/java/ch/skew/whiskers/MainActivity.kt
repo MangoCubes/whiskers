@@ -80,7 +80,7 @@ class MainActivity : ComponentActivity() {
                                     nav,
                                     it,
                                     { nav.navigate(Pages.AccountSetup.SelectInstance.route) },
-                                    { id, token -> accountDataViewModel.onEvent(AccountEvent.SaveAccessToken(id, token)) }
+                                    { id, token, username -> accountDataViewModel.onEvent(AccountEvent.SaveAccessToken(id, token, username)) }
                                 )
                             }
                         }

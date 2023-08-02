@@ -27,7 +27,7 @@ class AccountDataViewModel(
             }
             is AccountEvent.SaveAccessToken -> {
                 viewModelScope.launch {
-                    dao.saveAccessToken(e.id, e.accessToken)
+                    dao.saveAccessToken(e.id, e.accessToken, e.username)
                 }
             }
         }
