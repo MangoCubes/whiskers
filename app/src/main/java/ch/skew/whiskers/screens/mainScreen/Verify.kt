@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.misskey.MisskeyLoginClient
 
-enum class QueryState {
+enum class QueryStatus {
     AccountNotFound,
     Querying,
     Success,
@@ -47,28 +47,28 @@ fun Verify(
     retry: () -> Unit,
     goHome: () -> Unit
 ) {
-    val state = remember { mutableStateOf(QueryState.Querying) }
+    val state = remember { mutableStateOf(QueryStatus.Querying) }
     val message = remember { mutableStateOf("Verifying account...") }
     LaunchedEffect(Unit) {
         if (id === null) {
-            state.value = QueryState.AccountNotFound
+            state.value = QueryStatus.AccountNotFound
             message.value = "Invalid access."
             return@LaunchedEffect
         }
         val account = accounts.find { it.id == id }?.let { MisskeyLoginClient.from(it) }
         if(account === null) {
-            state.value = QueryState.AccountNotFound
+            state.value = QueryStatus.AccountNotFound
             message.value = "Account has not been added to the app."
             return@LaunchedEffect
         } else {
             account.userkey().fold(
                 {
                     addAccessToken(id, it.accessToken, it.user.username)
-                    state.value = QueryState.Success
+                    state.value = QueryStatus.Success
                     message.value = "Account successfully added! Welcome back ${it.user.name}."
                 },
                 {
-                    state.value = QueryState.NotAuthorised
+                    state.value = QueryStatus.NotAuthorised
                     message.value = "Cannot retrieve your account from the server. Please try again."
                 }
             )
@@ -90,12 +90,12 @@ fun Verify(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             when(state.value) {
-                QueryState.Querying -> {
+                QueryStatus.Querying -> {
                     CircularProgressIndicator(
                         modifier = Modifier.size(120.dp)
                     )
                 }
-                QueryState.Success -> {
+                QueryStatus.Success -> {
                     Icon(
                         Icons.Filled.Check,
                         "Success",
@@ -113,13 +113,13 @@ fun Verify(
             Text(message.value)
             Button(
                 goHome,
-                enabled = state.value !== QueryState.Querying
+                enabled = state.value !== QueryStatus.Querying
             ) {
                 Text("Go To Home")
             }
             Button(
                 retry,
-                enabled = state.value !== QueryState.Querying
+                enabled = state.value !== QueryStatus.Querying
             ) {
                 Text("Add Another Account")
             }
