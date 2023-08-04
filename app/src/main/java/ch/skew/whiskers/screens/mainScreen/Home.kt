@@ -3,6 +3,7 @@ package ch.skew.whiskers.screens.mainScreen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,12 +35,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ch.skew.whiskers.classes.QueryStatus
+import ch.skew.whiskers.classes.DataQueryStatus
 import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.misskey.MisskeyAPI
 import ch.skew.whiskers.misskey.MisskeyClient
 import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.UserDetailed
+import ch.skew.whiskers.misskey.error.api.AuthenticationError
+import ch.skew.whiskers.misskey.error.api.ClientError
+import ch.skew.whiskers.misskey.error.api.ForbiddenError
+import ch.skew.whiskers.misskey.error.api.InternalServerError
 import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
 
@@ -62,8 +68,7 @@ fun Home(
     addAccount: () -> Unit
 ) {
     val userQuery = remember { mutableStateOf<UserQuery>(UserQuery.Querying) }
-    val noteQuery = remember { mutableStateOf(QueryStatus.Querying) }
-    val notes = remember { mutableListOf<Note>() }
+    val notesQuery = remember { mutableStateOf<DataQueryStatus<List<Note>>>(DataQueryStatus.Querying(false)) }
     val scope = rememberCoroutineScope()
 
     suspend fun loadUserData() {
@@ -75,16 +80,19 @@ fun Home(
     }
 
     suspend fun loadNotes() {
-        noteQuery.value = QueryStatus.Querying
         account.getNotesTimeline().fold(
             {
-                notes.addAll(it)
-                noteQuery.value = QueryStatus.Success
+                notesQuery.value = DataQueryStatus.Success(it)
             },
             {
-                noteQuery.value = QueryStatus.Error
+                notesQuery.value = DataQueryStatus.Error(it)
             }
         )
+    }
+
+    suspend fun reloadNotes() {
+        notesQuery.value = DataQueryStatus.Querying(true)
+        loadNotes()
     }
 
     LaunchedEffect(Unit) {
@@ -158,13 +166,56 @@ fun Home(
                     }
                 )
             },
+        ) { padding ->
+            Box(modifier = Modifier.padding(padding)) {
+                notesQuery.value.let {
+                    when(it) {
+                        is DataQueryStatus.Error -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                when(it.error) {
+                                    is AuthenticationError -> {
+                                        Text("Authentication expired.")
+                                    }
+                                    is ClientError -> {
+                                        Text("Invalid request; Please alert the developer if this persists.")
+                                    }
+                                    is ForbiddenError -> {
+                                        Text("Access denied.")
+                                    }
+                                    is InternalServerError -> {
+                                        Text("Cannot fetch due to server error.")
+                                    }
+                                    else -> {
+                                        Text("Unknown error.")
+                                    }
+                                }
+                                Button(
+                                    onClick = { scope.launch { reloadNotes() } }
+                                ) {
+                                    Text("Reload")
+                                }
+                            }
+                        }
+                        is DataQueryStatus.Querying -> {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                        is DataQueryStatus.Success -> {
 
-            ) { padding ->
-                Column(
-                    modifier = Modifier.padding(padding)
-                ) {
+                        }
+                    }
+                }
             }
         }
     }
-
 }
