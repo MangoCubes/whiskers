@@ -167,37 +167,44 @@ fun Home(
                 )
             },
         ) { padding ->
-            Box(modifier = Modifier.padding(padding)) {
+            Box(
+                modifier = Modifier.padding(padding)
+                    .padding(16.dp)
+            ) {
                 notesQuery.value.let {
                     when(it) {
                         is DataQueryStatus.Error -> {
-                            Column(
+                            Box(
                                 modifier = Modifier
                                     .fillMaxSize(),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                                contentAlignment = Alignment.Center
                             ) {
-                                when(it.error) {
-                                    is AuthenticationError -> {
-                                        Text("Authentication expired.")
-                                    }
-                                    is ClientError -> {
-                                        Text("Invalid request; Please alert the developer if this persists.")
-                                    }
-                                    is ForbiddenError -> {
-                                        Text("Access denied.")
-                                    }
-                                    is InternalServerError -> {
-                                        Text("Cannot fetch due to server error.")
-                                    }
-                                    else -> {
-                                        Text("Unknown error.")
-                                    }
-                                }
-                                Button(
-                                    onClick = { scope.launch { reloadNotes() } }
+                                Column(
+                                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    Text("Reload")
+                                    when(it.error) {
+                                        is AuthenticationError -> {
+                                            Text("Authentication failed.")
+                                        }
+                                        is ClientError -> {
+                                            Text("Invalid request.")
+                                        }
+                                        is ForbiddenError -> {
+                                            Text("Invalid authentication details.")
+                                        }
+                                        is InternalServerError -> {
+                                            Text("Cannot fetch due to server error.")
+                                        }
+                                        else -> {
+                                            Text("Unknown error.")
+                                        }
+                                    }
+                                    Button(
+                                        onClick = { scope.launch { reloadNotes() } }
+                                    ) {
+                                        Text("Reload")
+                                    }
                                 }
                             }
                         }

@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.ManageAccounts
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalDrawerSheet
@@ -50,8 +51,9 @@ fun Drawer(
 ) {
     val expandAccounts = remember { mutableStateOf(false) }
     ModalDrawerSheet {
+        Text("Accounts", modifier = Modifier.padding(horizontal = 28.dp, vertical = 16.dp))
         NavigationDrawerItem(
-            label = { Text("Accounts") },
+            label = { Text("Change Accounts") },
             selected = false,
             onClick = { expandAccounts.value = !expandAccounts.value },
             icon = {
@@ -89,6 +91,13 @@ fun Drawer(
             icon = {
                 Icon(Icons.Filled.Add, contentDescription = "Add Account")
             },
+            modifier = itemModifier
+        )
+        NavigationDrawerItem(
+            label = { Text("Manage Accounts") },
+            selected = false,
+            onClick = {  },
+            icon = { Icon(Icons.Filled.ManageAccounts, contentDescription = "Manage Accounts") },
             modifier = itemModifier
         )
     }
