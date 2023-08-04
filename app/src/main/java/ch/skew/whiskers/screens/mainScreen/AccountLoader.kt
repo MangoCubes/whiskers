@@ -28,5 +28,16 @@ fun AccountLoader(
         val client = MisskeyClient.from(accountData)
         currentClient.value = client
     }
-    currentClient.value?.let { Home(accounts, it, addAccount) }
+    currentClient.value?.let { client ->
+        Home(accounts, client, addAccount) { name, host ->
+            val account = accounts.find {
+                it.username == name && it.host == host
+            }
+            if(account == null) return@Home false
+            else {
+                currentClient.value = MisskeyClient.from(account)
+                return@Home true
+            }
+        }
+    }
 }

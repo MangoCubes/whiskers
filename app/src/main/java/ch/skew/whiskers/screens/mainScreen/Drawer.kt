@@ -37,7 +37,12 @@ val example = listOf(
 @Composable
 @Preview
 fun DrawerPreview() {
-    Drawer(account = MisskeyClient(accessToken = "", api = MisskeyAPI(""), username = "User1"), example) {}
+    Drawer(
+        account = MisskeyClient(accessToken = "", api = MisskeyAPI(""), username = "User1"),
+        example,
+        {},
+        {_, _ -> }
+    )
 }
 
 val itemModifier = Modifier.padding(horizontal = 12.dp)
@@ -47,7 +52,8 @@ val itemModifier = Modifier.padding(horizontal = 12.dp)
 fun Drawer(
     account: MisskeyClient,
     accountData: List<AccountData>,
-    addAccount: () -> Unit
+    addAccount: () -> Unit,
+    selectAccount: (String, String) -> Unit
 ) {
     val expandAccounts = remember { mutableStateOf(false) }
     ModalDrawerSheet {
@@ -78,7 +84,7 @@ fun Drawer(
                             }
                         ) },
                         selected = it.username == account.username,
-                        onClick = {},
+                        onClick = { selectAccount(it.username, it.host) },
                         modifier = itemModifier
                     )
                 }

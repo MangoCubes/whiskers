@@ -1,5 +1,6 @@
 package ch.skew.whiskers.screens.mainScreen
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.skew.whiskers.classes.DataQueryStatus
@@ -57,7 +59,7 @@ sealed class UserQuery {
 @Composable
 @Preview
 fun HomePreview() {
-    Home(listOf(), MisskeyClient("", MisskeyAPI(""), ""), {})
+    Home(listOf(), MisskeyClient("", MisskeyAPI(""), ""), {}, {_, _ -> return@Home true })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +67,8 @@ fun HomePreview() {
 fun Home(
     accountData: List<AccountData>,
     account: MisskeyClient,
-    addAccount: () -> Unit
+    addAccount: () -> Unit,
+    selectAccount: (String, String) -> Boolean
 ) {
     val userQuery = remember { mutableStateOf<UserQuery>(UserQuery.Querying) }
     val notesQuery = remember { mutableStateOf<DataQueryStatus<List<Note>>>(DataQueryStatus.Querying(false)) }
@@ -95,15 +98,39 @@ fun Home(
         loadNotes()
     }
 
-    LaunchedEffect(Unit) {
-        launch { loadUserData() }
-        launch { loadNotes() }
+    LaunchedEffect(account) {
+        launch {
+            userQuery.value = UserQuery.Querying
+            loadUserData()
+        }
+        launch {
+            notesQuery.value = DataQueryStatus.Querying(false)
+            loadNotes()
+        }
     }
     
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val context = LocalContext.current
 
     ModalNavigationDrawer(
-        drawerContent = { Drawer(account, accountData, addAccount) },
+        drawerContent = {
+            Drawer(
+                account,
+                accountData,
+                addAccount
+            ) { name, host ->
+                scope.launch {
+                    drawerState.close()
+                    if(!selectAccount(name, host)) {
+                        Toast.makeText(
+                            context,
+                            "Account not found; defaulting to the first account.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        },
         gesturesEnabled = true,
         drawerState = drawerState
     ) {
