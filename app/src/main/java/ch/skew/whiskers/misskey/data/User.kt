@@ -156,7 +156,7 @@ data class UserDetailed(
     val carefulBot: Boolean? = null,
     val autoAcceptFollowed: Boolean? = null,
     val noCrawle: Boolean,
-    val preventAiLearning: Boolean,
+    val preventAiLearning: Boolean? = null,
     val isExplorable: Boolean,
     val isDeleted: Boolean,
     // Does not exist in Firefish
