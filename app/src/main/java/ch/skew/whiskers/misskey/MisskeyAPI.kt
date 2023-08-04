@@ -95,7 +95,7 @@ class MisskeyAPI(
             }
         }
         suspend fun ping(instance: String): Boolean {
-            val response = queryWithoutAuth<_, PingResData>(instance, listOf("app", "ping"), PingReqData)
+            val response = queryWithoutAuth<_, PingResData>(instance, listOf("ping"), PingReqData)
             return response.isSuccess
         }
     }

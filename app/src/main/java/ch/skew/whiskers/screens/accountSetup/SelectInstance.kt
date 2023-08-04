@@ -143,7 +143,7 @@ fun SelectInstance(
                                 scope.launch {
                                     status.value = QueryStatus.Querying
                                     status.value =
-                                        if (MisskeyAPI.ping(instance.toString())) QueryStatus.Success
+                                        if (MisskeyAPI.ping(tempUrl.value)) QueryStatus.Success
                                         else QueryStatus.Error
                                 }
                             }
@@ -152,8 +152,7 @@ fun SelectInstance(
                         }
                         Button(
                             onClick = {
-                                val url = Uri.parse(tempUrl.value)
-                                onSelect(url.authority ?: "localhost")
+                                onSelect(tempUrl.value)
                             },
                             enabled = status.value !== QueryStatus.Querying
                         ) {
