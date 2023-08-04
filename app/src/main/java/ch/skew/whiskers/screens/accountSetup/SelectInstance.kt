@@ -174,9 +174,9 @@ fun SelectInstance(
                 ) {
                     wellKnown.forEach {
                         ListItem(
-                            headlineText = { Text(it.name) },
-                            supportingText = { Text(it.desc) },
-                            overlineText = { Text(it.url) },
+                            headlineContent = { Text(it.name) },
+                            supportingContent = { Text(it.desc) },
+                            overlineContent = { Text(it.url) },
                             leadingContent = {
                                 Image(
                                     modifier = Modifier
