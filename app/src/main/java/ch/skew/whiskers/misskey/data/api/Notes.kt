@@ -15,7 +15,7 @@ data class NotesTimelineReqData(
     val includeRenotedMyNotes: Boolean? = true,
     val includeLocalRenotes: Boolean? = true,
     val withFiles: Boolean? = false,
-    val withReplies: Boolean? = false
+    val withReplies: Boolean
 )
 
 typealias NotesTimelineResData = List<Note>

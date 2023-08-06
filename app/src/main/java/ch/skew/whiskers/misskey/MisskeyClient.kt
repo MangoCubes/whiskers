@@ -27,7 +27,19 @@ class MisskeyClient(
         withFiles: Boolean = false,
         withReplies: Boolean? = null
     ): Result<List<Note>> {
-        val body = NotesTimelineReqData(accessToken, limit, sinceId, untilId, sinceDate, untilDate, includeMyRenotes, includeRenotedMyNotes, includeLocalRenotes, withFiles, withReplies)
+        val body = NotesTimelineReqData(
+            accessToken,
+            limit,
+            sinceId,
+            untilId,
+            sinceDate,
+            untilDate,
+            includeMyRenotes,
+            includeRenotedMyNotes,
+            includeLocalRenotes,
+            withFiles,
+            withReplies ?: false
+        )
         return this.api.notesTimeline(body)
     }
 
