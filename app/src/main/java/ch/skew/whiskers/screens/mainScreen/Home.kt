@@ -13,10 +13,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
@@ -40,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.skew.whiskers.classes.DataQueryStatus
+import ch.skew.whiskers.components.PullRefreshIndicator
 import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.misskey.MisskeyAPI
 import ch.skew.whiskers.misskey.MisskeyClient
@@ -64,7 +68,7 @@ fun HomePreview() {
     Home(listOf(), MisskeyClient("", MisskeyAPI(""), ""), {}, {_, _ -> return@Home true })
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun Home(
     accountData: List<AccountData>,
@@ -200,8 +204,15 @@ fun Home(
             Box(
                 modifier = Modifier
                     .padding(padding)
-                    .padding(16.dp)
+                    .padding(16.dp),
+                contentAlignment = Alignment.TopCenter
             ) {
+                val refreshing = notesQuery.value is DataQueryStatus.Querying
+                val pullRefreshState = rememberPullRefreshState(
+                    refreshing = refreshing,
+                    onRefresh = { scope.launch { reloadNotes() } }
+                )
+                PullRefreshIndicator(state = pullRefreshState, refreshing = refreshing)
                 notesQuery.value.let {
                     when(it) {
                         is DataQueryStatus.Error -> {
@@ -253,8 +264,10 @@ fun Home(
                         }
                         is DataQueryStatus.Success -> {
                             LazyColumn(
-                                verticalArrangement = Arrangement.spacedBy(16.dp),
-                                modifier = Modifier.fillMaxHeight(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .pullRefresh(pullRefreshState),
                                 userScrollEnabled = true
                             ) {
                                 it.item.map {
