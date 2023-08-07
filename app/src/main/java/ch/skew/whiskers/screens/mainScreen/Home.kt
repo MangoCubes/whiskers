@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -42,7 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ch.skew.whiskers.classes.DataQueryStatus
+import ch.skew.whiskers.classes.ErrorQueryStatus
 import ch.skew.whiskers.components.PullRefreshIndicator
 import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.misskey.MisskeyAPI
@@ -77,7 +78,8 @@ fun Home(
     selectAccount: (String, String) -> Boolean
 ) {
     val userQuery = remember { mutableStateOf<UserQuery>(UserQuery.Querying) }
-    val notesQuery = remember { mutableStateOf<DataQueryStatus<List<Note>>>(DataQueryStatus.Querying(false)) }
+    val notesQuery = remember { mutableStateOf<ErrorQueryStatus>(ErrorQueryStatus.Querying(false)) }
+    val notes = remember { mutableListOf<Note>() }
     val scope = rememberCoroutineScope()
 
     suspend fun loadUserData() {
@@ -91,26 +93,29 @@ fun Home(
     suspend fun loadNotes() {
         account.getNotesTimeline().fold(
             {
-                notesQuery.value = DataQueryStatus.Success(it)
+                notesQuery.value = ErrorQueryStatus.Success
+                notes.clear()
+                notes.addAll(it)
             },
             {
-                notesQuery.value = DataQueryStatus.Error(it)
+                notesQuery.value = ErrorQueryStatus.Error(it)
             }
         )
     }
 
     suspend fun reloadNotes() {
-        notesQuery.value = DataQueryStatus.Querying(true)
+        notesQuery.value = ErrorQueryStatus.Querying(true)
         loadNotes()
     }
 
     LaunchedEffect(account) {
+        notes.clear()
         launch {
             userQuery.value = UserQuery.Querying
             loadUserData()
         }
         launch {
-            notesQuery.value = DataQueryStatus.Querying(false)
+            notesQuery.value = ErrorQueryStatus.Querying(false)
             loadNotes()
         }
     }
@@ -204,10 +209,11 @@ fun Home(
             Box(
                 modifier = Modifier
                     .padding(padding)
-                    .padding(16.dp),
+                    .padding(16.dp)
+                    .fillMaxWidth(),
                 contentAlignment = Alignment.TopCenter
             ) {
-                val refreshing = notesQuery.value is DataQueryStatus.Querying
+                val refreshing = notesQuery.value is ErrorQueryStatus.Querying
                 val pullRefreshState = rememberPullRefreshState(
                     refreshing = refreshing,
                     onRefresh = { scope.launch { reloadNotes() } }
@@ -215,7 +221,7 @@ fun Home(
                 PullRefreshIndicator(state = pullRefreshState, refreshing = refreshing)
                 notesQuery.value.let {
                     when(it) {
-                        is DataQueryStatus.Error -> {
+                        is ErrorQueryStatus.Error -> {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize(),
@@ -253,16 +259,7 @@ fun Home(
                                 }
                             }
                         }
-                        is DataQueryStatus.Querying -> {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
-                            }
-                        }
-                        is DataQueryStatus.Success -> {
+                        else -> {
                             LazyColumn(
                                 verticalArrangement = Arrangement.spacedBy(8.dp),
                                 modifier = Modifier
@@ -270,7 +267,7 @@ fun Home(
                                     .pullRefresh(pullRefreshState),
                                 userScrollEnabled = true
                             ) {
-                                it.item.map {
+                                notes.map {
                                     item{
                                         NoteCard(it, {})
                                     }
