@@ -3,6 +3,8 @@ package ch.skew.whiskers.misskey
 import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.api.AccountIReqData
 import ch.skew.whiskers.misskey.data.api.AccountIResData
+import ch.skew.whiskers.misskey.data.api.MetaEmojisReqData
+import ch.skew.whiskers.misskey.data.api.MetaEmojisResData
 import ch.skew.whiskers.misskey.data.api.NotesTimelineReqData
 import ch.skew.whiskers.misskey.data.api.PingReqData
 import ch.skew.whiskers.misskey.data.api.PingResData
@@ -32,6 +34,10 @@ class MisskeyAPI(
     }
     suspend fun accountI(token: String): Result<AccountIResData> {
         return this.queryWithAuth(listOf("i"), AccountIReqData(token))
+    }
+
+    suspend fun metaEmojis(): Result<MetaEmojisResData> {
+        return queryWithoutAuth(this.instance, listOf("meta", "emojis"), MetaEmojisReqData)
     }
 
     private suspend inline fun <reified REQ, reified RES> queryWithAuth(endpoint: List<String>, body: REQ): Result<RES> {

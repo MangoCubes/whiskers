@@ -1,4 +1,4 @@
-package ch.skew.whiskers.modifiers
+package ch.skew.whiskers.functions.modifiers
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
