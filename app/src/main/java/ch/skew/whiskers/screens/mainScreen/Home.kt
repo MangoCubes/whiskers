@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -41,8 +42,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import ch.skew.whiskers.classes.DataQueryStatus
 import ch.skew.whiskers.classes.ErrorQueryStatus
 import ch.skew.whiskers.components.PullRefreshIndicator
 import ch.skew.whiskers.data.accounts.AccountData
@@ -54,7 +59,12 @@ import ch.skew.whiskers.misskey.error.api.AuthenticationError
 import ch.skew.whiskers.misskey.error.api.ClientError
 import ch.skew.whiskers.misskey.error.api.ForbiddenError
 import ch.skew.whiskers.misskey.error.api.InternalServerError
+import coil.ImageLoader
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import coil.disk.DiskCache
+import coil.memory.MemoryCache
+import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 
 sealed class UserQuery {
@@ -80,8 +90,22 @@ fun Home(
     val userQuery = remember { mutableStateOf<UserQuery>(UserQuery.Querying) }
     val notesQuery = remember { mutableStateOf<ErrorQueryStatus>(ErrorQueryStatus.Querying(false)) }
     val notes = remember { mutableListOf<Note>() }
+    val emojis = remember { mutableStateOf<DataQueryStatus<Map<String, InlineTextContent>>>(DataQueryStatus.Querying(false)) }
     val scope = rememberCoroutineScope()
-
+    val context = LocalContext.current
+    val imageLoader = ImageLoader.Builder(context)
+        .memoryCache {
+            MemoryCache.Builder(context)
+                .maxSizePercent(0.25)
+                .build()
+        }
+        .diskCache {
+            DiskCache.Builder()
+                .directory(context.cacheDir.resolve("image_cache"))
+                .maxSizePercent(0.02)
+                .build()
+        }
+        .build()
     suspend fun loadUserData() {
         userQuery.value = UserQuery.Querying
         account.getDetailedUserData().fold(
@@ -111,6 +135,22 @@ fun Home(
     LaunchedEffect(account) {
         notes.clear()
         launch {
+            account.getEmojis().onSuccess {
+                emojis.value = DataQueryStatus.Success(
+                    it.emojis.associate { emoji ->
+                        emoji.name to InlineTextContent(
+                            Placeholder(20.sp, 20.sp, PlaceholderVerticalAlign.TextCenter)
+                        ) {
+                            val imageRequest = ImageRequest.Builder(context)
+                                .data(emoji.url)
+                                .build()
+                            AsyncImage(model = imageRequest, contentDescription = emoji.name)
+                        }
+                    }
+                )
+            }
+        }
+        launch {
             userQuery.value = UserQuery.Querying
             loadUserData()
         }
@@ -121,8 +161,6 @@ fun Home(
     }
     
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val context = LocalContext.current
-
 
     ModalNavigationDrawer(
         drawerContent = {
@@ -219,8 +257,8 @@ fun Home(
                     onRefresh = { scope.launch { reloadNotes() } }
                 )
                 PullRefreshIndicator(state = pullRefreshState, refreshing = refreshing)
-                notesQuery.value.let {
-                    when(it) {
+                notesQuery.value.let { notesStatus ->
+                    when(notesStatus) {
                         is ErrorQueryStatus.Error -> {
                             Box(
                                 modifier = Modifier
@@ -231,7 +269,7 @@ fun Home(
                                     verticalArrangement = Arrangement.spacedBy(16.dp),
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
-                                    when(it.error) {
+                                    when(notesStatus.error) {
                                         is AuthenticationError -> {
                                             Text("Authentication failed.")
                                         }
@@ -267,9 +305,13 @@ fun Home(
                                     .pullRefresh(pullRefreshState),
                                 userScrollEnabled = true
                             ) {
-                                notes.map {
-                                    item{
-                                        NoteCard(it, {})
+                                emojis.value.let {
+                                    if(it is DataQueryStatus.Success) {
+                                        notes.map { note ->
+                                            item{
+                                                NoteCard(note, {}, it.item)
+                                            }
+                                        }
                                     }
                                 }
                             }

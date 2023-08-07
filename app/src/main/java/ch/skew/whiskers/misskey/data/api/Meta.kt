@@ -12,9 +12,9 @@ data class Emoji (
     val roleIdsThatCanBeUsedThisEmojiAsReaction: List<String>? = null
 )
 @Serializable
-object MetaEmojisReqData
+object EmojisReqData
 
 @Serializable
-data class MetaEmojisResData(
+data class EmojisResData(
     val emojis: List<Emoji>
 )

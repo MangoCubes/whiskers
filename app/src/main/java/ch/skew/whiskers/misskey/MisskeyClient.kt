@@ -3,7 +3,7 @@ package ch.skew.whiskers.misskey
 import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.api.AccountIResData
-import ch.skew.whiskers.misskey.data.api.MetaEmojisResData
+import ch.skew.whiskers.misskey.data.api.EmojisResData
 import ch.skew.whiskers.misskey.data.api.NotesTimelineReqData
 
 
@@ -16,7 +16,7 @@ class MisskeyClient(
         return this.api.accountI(accessToken)
     }
 
-    suspend fun getEmojis(): Result<MetaEmojisResData> {
+    suspend fun getEmojis(): Result<EmojisResData> {
         return this.api.metaEmojis()
     }
     suspend fun getNotesTimeline(
