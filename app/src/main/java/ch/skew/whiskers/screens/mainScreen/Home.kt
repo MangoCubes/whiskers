@@ -60,11 +60,10 @@ import ch.skew.whiskers.misskey.error.api.ClientError
 import ch.skew.whiskers.misskey.error.api.ForbiddenError
 import ch.skew.whiskers.misskey.error.api.InternalServerError
 import ch.skew.whiskers.misskey.error.api.NotFoundError
-import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
-import coil.disk.DiskCache
-import coil.memory.MemoryCache
+import coil.imageLoader
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 
@@ -94,19 +93,6 @@ fun Home(
     val emojis = remember { mutableStateOf<DataQueryStatus<Map<String, InlineTextContent>>>(DataQueryStatus.Querying(false)) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val imageLoader = ImageLoader.Builder(context)
-        .memoryCache {
-            MemoryCache.Builder(context)
-                .maxSizePercent(0.25)
-                .build()
-        }
-        .diskCache {
-            DiskCache.Builder()
-                .directory(context.cacheDir.resolve("image_cache"))
-                .maxSizePercent(0.02)
-                .build()
-        }
-        .build()
     suspend fun loadUserData() {
         userQuery.value = UserQuery.Querying
         account.getDetailedUserData().fold(
@@ -137,23 +123,29 @@ fun Home(
         notes.clear()
         launch {
             account.getEmojis().onSuccess {
-                emojis.value = DataQueryStatus.Success(
-                    it.emojis.associate { emoji ->
-                        val imageRequest = imageLoader.execute(
+                val emojiMap = mutableMapOf<String, InlineTextContent>()
+                it.emojis.forEach { emoji ->
+                    launch {
+                        val image = context.imageLoader.execute(
                             ImageRequest.Builder(context)
-                                .data(emoji.url)
+                                .memoryCacheKey(emoji.name)
+                                .diskCacheKey(emoji.name)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .memoryCachePolicy(CachePolicy.ENABLED)
                                 .crossfade(true)
                                 .build()
                         )
-                        emoji.name to InlineTextContent(
+                        emojiMap[emoji.name] = InlineTextContent(
                             Placeholder(20.sp, 20.sp, PlaceholderVerticalAlign.TextCenter)
                         ) {
-                            AsyncImage(model = imageRequest, contentDescription = emoji.name)
+                            AsyncImage(model = image, contentDescription = emoji.name)
                         }
+                        emojis.value = DataQueryStatus.Success(emojiMap)
                     }
-                )
+                }
             }.onFailure {
                 // Emojis may not exist in a given instance
+                println(it)
                 if (it is NotFoundError) emojis.value = DataQueryStatus.Success(mapOf())
             }
         }
@@ -312,14 +304,19 @@ fun Home(
                                     .pullRefresh(pullRefreshState),
                                 userScrollEnabled = true
                             ) {
+                                var emojiMap = mapOf<String, InlineTextContent>()
                                 emojis.value.let {
                                     if(it is DataQueryStatus.Success) {
-                                        notes.map { note ->
-                                            item{
-                                                NoteCard(note, {}, it.item)
-                                            }
-                                        }
+                                        emojiMap = it.item
                                     }
+                                }
+                                items (
+                                    count = notes.size,
+                                    key = {
+                                        notes[it].id
+                                    }
+                                ) {
+                                    NoteCard(notes[it], {}, emojiMap)
                                 }
                             }
                         }
