@@ -24,8 +24,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import ch.skew.whiskers.functions.emojiString
-import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.functions.modifiers.fadingEdge
+import ch.skew.whiskers.misskey.data.Note
 import coil.compose.rememberAsyncImagePainter
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -35,12 +35,24 @@ import java.time.format.DateTimeFormatter
 fun NoteCard(
     note: Note,
     noteScreen: () -> Unit,
-    emojis: Map<String, InlineTextContent>
+    emojis: Map<String, InlineTextContent>,
+    requestImages: (List<String>) -> Unit
 ) {
+    val requestSent = remember { mutableStateOf(false) }
     val bottomFade = Brush.verticalGradient(0.6f to Color.Red, 1f to Color.Transparent)
+
+    fun requestEmojis(emojiList: List<String>) {
+        if(requestSent.value) return
+        else {
+            requestImages(emojiList)
+            requestSent.value = true
+        }
+    }
+
     Card(
         onClick = noteScreen,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
             .heightIn(0.dp, 250.dp)
     ) {
         val overflow = remember { mutableStateOf(false) }
@@ -72,9 +84,13 @@ fun NoteCard(
                     Text(createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 }
             }
-            note.text?.let {
+            note.text?.let { content ->
+                val (found, annotatedString) = emojiString(content)
+                found.distinct().let {
+                    if(it.isNotEmpty()) requestEmojis(it)
+                }
                 Text(
-                    emojiString(it),
+                    annotatedString,
                     onTextLayout = { result ->
                         if(result.didOverflowHeight) overflow.value = true
                     },
