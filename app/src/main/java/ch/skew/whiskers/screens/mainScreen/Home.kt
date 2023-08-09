@@ -138,12 +138,15 @@ fun Home(
             account.getEmojis().onSuccess {
                 emojis.value = DataQueryStatus.Success(
                     it.emojis.associate { emoji ->
+                        val imageRequest = imageLoader.execute(
+                            ImageRequest.Builder(context)
+                                .data(emoji.name)
+                                .crossfade(true)
+                                .build()
+                        )
                         emoji.name to InlineTextContent(
                             Placeholder(20.sp, 20.sp, PlaceholderVerticalAlign.TextCenter)
                         ) {
-                            val imageRequest = ImageRequest.Builder(context)
-                                .data(emoji.url)
-                                .build()
                             AsyncImage(model = imageRequest, contentDescription = emoji.name)
                         }
                     }
