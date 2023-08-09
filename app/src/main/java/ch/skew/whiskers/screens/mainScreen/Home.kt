@@ -59,6 +59,7 @@ import ch.skew.whiskers.misskey.error.api.AuthenticationError
 import ch.skew.whiskers.misskey.error.api.ClientError
 import ch.skew.whiskers.misskey.error.api.ForbiddenError
 import ch.skew.whiskers.misskey.error.api.InternalServerError
+import ch.skew.whiskers.misskey.error.api.NotFoundError
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
@@ -140,7 +141,7 @@ fun Home(
                     it.emojis.associate { emoji ->
                         val imageRequest = imageLoader.execute(
                             ImageRequest.Builder(context)
-                                .data(emoji.name)
+                                .data(emoji.url)
                                 .crossfade(true)
                                 .build()
                         )
@@ -151,6 +152,9 @@ fun Home(
                         }
                     }
                 )
+            }.onFailure {
+                // Emojis may not exist in a given instance
+                if (it is NotFoundError) emojis.value = DataQueryStatus.Success(mapOf())
             }
         }
         launch {

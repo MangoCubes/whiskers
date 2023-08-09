@@ -13,6 +13,7 @@ import ch.skew.whiskers.misskey.error.api.ClientError
 import ch.skew.whiskers.misskey.error.api.ForbiddenError
 import ch.skew.whiskers.misskey.error.api.ImAiError
 import ch.skew.whiskers.misskey.error.api.InternalServerError
+import ch.skew.whiskers.misskey.error.api.NotFoundError
 import ch.skew.whiskers.misskey.error.api.UnknownResponseError
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -94,6 +95,8 @@ class MisskeyAPI(
                     400 -> Result.failure(ClientError(res.body()))
                     401 -> Result.failure(AuthenticationError(res.body()))
                     500 -> Result.failure(InternalServerError(res.body()))
+                    // This can exist for emoji endpoint
+                    404 -> Result.failure(NotFoundError())
                     else -> Result.failure(UnknownResponseError())
                 }
             } catch (e: Throwable) {
