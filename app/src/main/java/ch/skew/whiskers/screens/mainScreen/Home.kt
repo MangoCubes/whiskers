@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
@@ -42,11 +41,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.Placeholder
-import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import ch.skew.whiskers.classes.DataQueryStatus
 import ch.skew.whiskers.classes.ErrorQueryStatus
 import ch.skew.whiskers.components.PullRefreshIndicator
@@ -61,11 +57,7 @@ import ch.skew.whiskers.misskey.error.api.ClientError
 import ch.skew.whiskers.misskey.error.api.ForbiddenError
 import ch.skew.whiskers.misskey.error.api.InternalServerError
 import ch.skew.whiskers.misskey.error.api.NotFoundError
-import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
-import coil.imageLoader
-import coil.request.CachePolicy
-import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 
 sealed class UserQuery {
@@ -92,7 +84,6 @@ fun Home(
     val notesQuery = remember { mutableStateOf<ErrorQueryStatus>(ErrorQueryStatus.Querying(false)) }
     val notes = remember { mutableListOf<Note>() }
     val emojis = remember { mutableStateOf<DataQueryStatus<Map<String, Emoji>>>(DataQueryStatus.Querying(false)) }
-    val emojiContent = remember { mutableMapOf<String, InlineTextContent>() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     suspend fun loadUserData() {
@@ -123,7 +114,6 @@ fun Home(
 
     LaunchedEffect(account) {
         emojis.value = DataQueryStatus.Querying(false)
-        emojiContent.clear()
         notes.clear()
         launch {
             account.getEmojis().onSuccess { res ->
@@ -301,28 +291,7 @@ fun Home(
                                                 notes[it].id
                                             }
                                         ) { index ->
-                                            NoteCard(notes[index], {}, emojiContent) { emojiList ->
-                                                emojiList.forEach {
-                                                    val emoji = emojiMap.item[it] ?: return@forEach
-                                                    scope.launch {
-                                                        val image = context.imageLoader.execute(
-                                                            ImageRequest.Builder(context)
-                                                                .data(emoji.url)
-                                                                .memoryCacheKey(emoji.name)
-                                                                .diskCacheKey(emoji.name)
-                                                                .diskCachePolicy(CachePolicy.ENABLED)
-                                                                .memoryCachePolicy(CachePolicy.ENABLED)
-                                                                .crossfade(true)
-                                                                .build()
-                                                        )
-                                                        emojiContent[emoji.name] = InlineTextContent(
-                                                            Placeholder(20.sp, 20.sp, PlaceholderVerticalAlign.TextCenter)
-                                                        ) {
-                                                            AsyncImage(model = image, contentDescription = emoji.name)
-                                                        }
-                                                    }
-                                                }
-                                            }
+                                            NoteCard(notes[index], {}, emojiMap.item)
                                         }
                                     }
                                 }
