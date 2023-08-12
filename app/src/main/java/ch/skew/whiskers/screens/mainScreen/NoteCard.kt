@@ -10,8 +10,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Mail
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,11 +33,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.skew.whiskers.functions.emojiString
 import ch.skew.whiskers.functions.modifiers.fadingEdge
 import ch.skew.whiskers.misskey.data.Note
+import ch.skew.whiskers.misskey.data.Visibility
 import ch.skew.whiskers.misskey.data.api.Emoji
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
@@ -94,7 +103,8 @@ fun NoteCard(
         ) {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Image(
                     modifier = Modifier
@@ -104,7 +114,8 @@ fun NoteCard(
                     contentDescription = note.user.username
                 )
                 Column(
-                    verticalArrangement = Arrangement.SpaceBetween
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.weight(1F)
                 ) {
                     note.user.name?.let { name ->
                         val (found, annotatedString) = emojiString(name)
@@ -112,16 +123,33 @@ fun NoteCard(
                             if(it.isNotEmpty()) requestEmojis(it)
                         }
                         Text(
-                            annotatedString,
-                            inlineContent = inlineContent
+                            buildAnnotatedString {
+                                append(annotatedString)
+                                append(" (@${note.user.username})")
+                            },
+                            inlineContent = inlineContent,
+                            style = MaterialTheme.typography.titleMedium,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1
                         )
                     } ?: Text(
                         "@" + note.user.username,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1
                     )
                     val createdAt = LocalDateTime.parse(note.createdAt, DateTimeFormatter.ISO_OFFSET_DATE_TIME)
                     Text(createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 }
+                Icon(
+                    when(note.visibility) {
+                        Visibility.Public -> Icons.Filled.Public
+                        Visibility.Followers -> Icons.Filled.Lock
+                        Visibility.Home -> Icons.Filled.Home
+                        Visibility.Direct -> Icons.Filled.Mail
+                    },
+                    note.visibility.toString()
+                )
             }
             note.text?.let { content ->
                 val (found, annotatedString) = emojiString(content)
