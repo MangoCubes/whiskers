@@ -2,6 +2,7 @@ package ch.skew.whiskers.screens.mainScreen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,8 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,17 +31,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.skew.whiskers.functions.emojiString
-import ch.skew.whiskers.functions.modifiers.fadingEdge
 import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.Visibility
 import ch.skew.whiskers.misskey.data.api.Emoji
@@ -58,35 +59,30 @@ fun NoteCard(
     noteScreen: () -> Unit,
     emojiMap: Map<String, Emoji>
 ) {
-    val requestSent = remember { mutableStateOf(false) }
-    val bottomFade = Brush.verticalGradient(0.6f to Color.Red, 1f to Color.Transparent)
     val inlineContent = remember { mutableStateMapOf<String, InlineTextContent>() }
     val context = LocalContext.current
+    val expanded = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     fun requestEmojis(emojiList: List<String>) {
-        if(requestSent.value) return
-        else {
-            emojiList.forEach {
-                val emoji = emojiMap[it] ?: return@forEach
-                scope.launch {
-                    val image = ImageRequest.Builder(context)
-                        .data(emoji.url)
-                        .memoryCacheKey(emoji.name)
-                        .diskCacheKey(emoji.name)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .memoryCachePolicy(CachePolicy.ENABLED)
-                        .crossfade(true)
-                        .build()
-                    context.imageLoader.enqueue(image)
-                    inlineContent[emoji.name] = InlineTextContent(
-                        Placeholder(20.sp, 20.sp, PlaceholderVerticalAlign.TextCenter)
-                    ) {
-                        AsyncImage(model = image, contentDescription = emoji.name)
-                    }
+        emojiList.forEach {
+            val emoji = emojiMap[it] ?: return@forEach
+            scope.launch {
+                val image = ImageRequest.Builder(context)
+                    .data(emoji.url)
+                    .memoryCacheKey(emoji.name)
+                    .diskCacheKey(emoji.name)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .crossfade(true)
+                    .build()
+                context.imageLoader.enqueue(image)
+                inlineContent[emoji.name] = InlineTextContent(
+                    Placeholder(20.sp, 20.sp, PlaceholderVerticalAlign.TextCenter)
+                ) {
+                    AsyncImage(model = image, contentDescription = emoji.name)
                 }
             }
-            requestSent.value = true
         }
     }
 
@@ -94,7 +90,7 @@ fun NoteCard(
         onClick = noteScreen,
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(0.dp, 250.dp)
+            .heightIn(0.dp, if (expanded.value) Dp.Unspecified else 300.dp)
     ) {
         val overflow = remember { mutableStateOf(false) }
         Column(
@@ -156,14 +152,36 @@ fun NoteCard(
                 found.distinct().let {
                     if(it.isNotEmpty()) requestEmojis(it)
                 }
-                Text(
-                    annotatedString,
-                    onTextLayout = { result ->
-                        if(result.didOverflowHeight) overflow.value = true
-                    },
-                    modifier = if (overflow.value) Modifier.fadingEdge(bottomFade) else Modifier,
-                    inlineContent = inlineContent
-                )
+                if(expanded.value) {
+                    Text(
+                        annotatedString,
+                        inlineContent = inlineContent
+                    )
+                } else {
+                    Box(
+                        if (overflow.value)
+                            Modifier.weight(1F)
+                                .fillMaxWidth()
+                        else Modifier,
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        Text(
+                            annotatedString,
+                            onTextLayout = { result ->
+                                overflow.value = result.didOverflowHeight
+                            },
+                            inlineContent = inlineContent
+                        )
+                        if(overflow.value) {
+                            Button(
+                                { expanded.value = true },
+                                elevation = ButtonDefaults.elevatedButtonElevation()
+                            ) {
+                                Text("Expand")
+                            }
+                        }
+                    }
+                }
             }
         }
     }
