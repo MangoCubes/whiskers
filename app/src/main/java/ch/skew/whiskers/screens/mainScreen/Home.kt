@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -34,6 +35,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -82,9 +84,10 @@ fun Home(
 ) {
     val userQuery = remember { mutableStateOf<UserQuery>(UserQuery.Querying) }
     val notesQuery = remember { mutableStateOf<ErrorQueryStatus>(ErrorQueryStatus.Querying(false)) }
-    val notes = remember { mutableListOf<Note>() }
+    val notes = remember { mutableStateListOf<Note>() }
     val emojis = remember { mutableStateOf<DataQueryStatus<Map<String, Emoji>>>(DataQueryStatus.Querying(false)) }
     val scope = rememberCoroutineScope()
+    val lazyListState = rememberLazyListState()
     val context = LocalContext.current
     suspend fun loadUserData() {
         userQuery.value = UserQuery.Querying
@@ -94,22 +97,30 @@ fun Home(
         )
     }
 
-    suspend fun loadNotes() {
+    /**
+     * Returns whether the screen should scroll up to top
+     */
+    suspend fun loadNotes(): Boolean {
         account.getNotesTimeline().fold(
             {
                 notesQuery.value = ErrorQueryStatus.Success
+                val oldLatest = if(notes.isEmpty()) "" else notes[0].id
                 notes.clear()
                 notes.addAll(it)
+                if (it.isEmpty()) return false
+                else return it[0].id != oldLatest
+
             },
             {
                 notesQuery.value = ErrorQueryStatus.Error(it)
+                return false
             }
         )
     }
 
     suspend fun reloadNotes() {
         notesQuery.value = ErrorQueryStatus.Querying(true)
-        loadNotes()
+        if (loadNotes()) lazyListState.animateScrollToItem(0)
     }
 
     LaunchedEffect(account) {
@@ -279,6 +290,7 @@ fun Home(
                             emojis.value.let { emojiMap ->
                                 if(emojiMap is DataQueryStatus.Success) {
                                     LazyColumn(
+                                        state = lazyListState,
                                         verticalArrangement = Arrangement.spacedBy(8.dp),
                                         modifier = Modifier
                                             .fillMaxHeight()
