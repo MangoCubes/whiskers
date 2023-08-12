@@ -1,20 +1,28 @@
 package ch.skew.whiskers.misskey.data
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class OnlineStatus(val status: String) {
-    unknown("unknown"),
-    online("online"),
-    active("active"),
-    offline("offline")
+enum class OnlineStatus {
+    @SerialName("unknown")
+    Unknown,
+    @SerialName("online")
+    Online,
+    @SerialName("active")
+    Active,
+    @SerialName("offline")
+    Offline
 }
 
 @Serializable
-enum class TwoFactorBackupCodes(val status: String) {
-    full("full"),
-    partial("partial"),
-    none("none")
+enum class TwoFactorBackupCodes {
+    @SerialName("full")
+    Full,
+    @SerialName("partial")
+    Partial,
+    @SerialName("none")
+    None
 }
 
 @Serializable

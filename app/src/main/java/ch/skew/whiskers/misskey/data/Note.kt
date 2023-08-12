@@ -1,7 +1,19 @@
 package ch.skew.whiskers.misskey.data
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
+@Serializable
+enum class Visibility() {
+    @SerialName("public")
+    Public,
+    @SerialName("followers")
+    Followers,
+    @SerialName("home")
+    Home,
+    @SerialName("specified")
+    Direct
+}
 @Serializable
 data class Note(
     val id: String,
@@ -16,7 +28,7 @@ data class Note(
     val reply: Note? = null,
     val renote: Note? = null,
     val isHidden: Boolean? = null,
-    val visibility: String? = null,
+    val visibility: Visibility,
     val mentions: List<String>? = null,
     val visibleUserIds: List<String>? = null,
     val fieldIds: List<String>? = null,
