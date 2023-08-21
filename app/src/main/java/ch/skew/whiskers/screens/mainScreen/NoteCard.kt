@@ -160,7 +160,8 @@ fun NoteCard(
                 } else {
                     Box(
                         if (overflow.value)
-                            Modifier.weight(1F)
+                            Modifier
+                                .weight(1F)
                                 .fillMaxWidth()
                         else Modifier,
                         contentAlignment = Alignment.BottomCenter
@@ -183,6 +184,12 @@ fun NoteCard(
                     }
                 }
             }
+            ReactionChips(
+                reactions = note.reactions,
+                enableAdd = false,
+                expanded = false,
+                maxHeight = 200
+            )
         }
     }
 }

@@ -39,10 +39,10 @@ data class Note(
     // val channel: Channel? = null,
     val localOnly: Boolean? = null,
     val reactionAcceptance: String? = null,
-    // val reactions: Reaction,
+    val reactions: Map<String, Int>,
     val renoteCount: Int,
     val repliesCount: Int,
     val uri: String? = null,
     val url: String? = null,
-    // val myReaction: Reaction? = null
+     val myReaction: String? = null
 )
