@@ -71,7 +71,7 @@ sealed class UserQuery {
 @Composable
 @Preview
 fun HomePreview() {
-    Home(listOf(), MisskeyClient("", MisskeyAPI(""), ""), {}, {_, _ -> return@Home true })
+    Home(listOf(), MisskeyClient("", MisskeyAPI(""), ""), {}, {_, _ -> return@Home true }, {})
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -80,7 +80,8 @@ fun Home(
     accountData: List<AccountData>,
     account: MisskeyClient,
     addAccount: () -> Unit,
-    selectAccount: (String, String) -> Boolean
+    selectAccount: (String, String) -> Boolean,
+    manageAccounts: () -> Unit
 ) {
     val userQuery = remember { mutableStateOf<UserQuery>(UserQuery.Querying) }
     val notesQuery = remember { mutableStateOf<ErrorQueryStatus>(ErrorQueryStatus.Querying(false)) }
@@ -156,19 +157,21 @@ fun Home(
             Drawer(
                 account,
                 accountData,
-                addAccount
-            ) { name, host ->
-                scope.launch {
-                    drawerState.close()
-                    if(!selectAccount(name, host)) {
-                        Toast.makeText(
-                            context,
-                            "Account not found; defaulting to the first account.",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                addAccount,
+                { name, host ->
+                    scope.launch {
+                        drawerState.close()
+                        if(!selectAccount(name, host)) {
+                            Toast.makeText(
+                                context,
+                                "Account not found; defaulting to the first account.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
-                }
-            }
+                },
+                manageAccounts
+            )
         },
         gesturesEnabled = true,
         drawerState = drawerState

@@ -13,7 +13,8 @@ import kotlinx.coroutines.flow.first
 @Composable
 fun AccountLoader(
     accounts: List<AccountData>,
-    addAccount: () -> Unit
+    addAccount: () -> Unit,
+    manageAccounts: () -> Unit
 ) {
     val currentClient = remember { mutableStateOf<MisskeyClient?>(null) }
     val context = LocalContext.current
@@ -29,7 +30,7 @@ fun AccountLoader(
         currentClient.value = client
     }
     currentClient.value?.let { client ->
-        Home(accounts, client, addAccount) { name, host ->
+        Home(accounts, client, addAccount, { name, host ->
             val account = accounts.find {
                 it.username == name && it.host == host
             }
@@ -38,6 +39,6 @@ fun AccountLoader(
                 currentClient.value = MisskeyClient.from(account)
                 return@Home true
             }
-        }
+        }, manageAccounts)
     }
 }

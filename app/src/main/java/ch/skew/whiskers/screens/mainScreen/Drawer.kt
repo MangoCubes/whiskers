@@ -41,7 +41,8 @@ fun DrawerPreview() {
         account = MisskeyClient(accessToken = "", api = MisskeyAPI(""), username = "User1"),
         example,
         {},
-        {_, _ -> }
+        {_, _ -> },
+        {}
     )
 }
 
@@ -53,7 +54,8 @@ fun Drawer(
     account: MisskeyClient,
     accountData: List<AccountData>,
     addAccount: () -> Unit,
-    selectAccount: (String, String) -> Unit
+    selectAccount: (String, String) -> Unit,
+    manageAccounts: () -> Unit
 ) {
     val expandAccounts = remember { mutableStateOf(false) }
     ModalDrawerSheet {
@@ -102,7 +104,7 @@ fun Drawer(
         NavigationDrawerItem(
             label = { Text("Manage Accounts") },
             selected = false,
-            onClick = {  },
+            onClick = manageAccounts,
             icon = { Icon(Icons.Filled.ManageAccounts, contentDescription = "Manage Accounts") },
             modifier = itemModifier
         )

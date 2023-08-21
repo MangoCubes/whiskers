@@ -19,7 +19,7 @@ fun NavGraphBuilder.main(
     saveAccount: (String, String, String, String) -> Deferred<Throwable?>,
 ) {
     composable(route = Pages.Main.Home.route) {
-        AccountLoader(accounts, addAccount)
+        AccountLoader(accounts, addAccount) { nav.navigate(Pages.Main.ManageAccounts.route) }
     }
     composable(
         route = Pages.Main.Verify.route,
@@ -46,5 +46,8 @@ fun NavGraphBuilder.main(
                 popUpTo(0)
             }
         }
+    }
+    composable(route = Pages.Main.ManageAccounts.route) {
+        AccountManagement(accounts, { nav.popBackStack() }, addAccount)
     }
 }

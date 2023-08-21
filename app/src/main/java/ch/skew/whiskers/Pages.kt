@@ -3,7 +3,8 @@ package ch.skew.whiskers
 sealed class Pages {
     enum class Main(val route: String) {
         Home("main_home"),
-        Verify("main_verify")
+        Verify("main_verify"),
+        ManageAccounts("main_manage_accounts")
     }
     enum class AccountSetup(val route: String) {
         Welcome("account_setup_welcome"),
