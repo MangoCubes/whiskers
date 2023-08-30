@@ -29,7 +29,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import ch.skew.whiskers.data.AuthInProgress
-import ch.skew.whiskers.data.WhiskersSettings
+import ch.skew.whiskers.data.WhiskersPersistent
 import ch.skew.whiskers.misskey.MisskeyLoginClient
 import coil.compose.rememberAsyncImagePainter
 import kotlinx.coroutines.launch
@@ -109,8 +109,8 @@ fun Login(
                                 val generated = it.generate().getOrNull()
                                 if (generated !== null) {
                                     state.value = LoginState.Redirecting
-                                    val settings = WhiskersSettings(context)
-                                    settings.saveAuthInProgress(
+                                    val persistent = WhiskersPersistent(context)
+                                    persistent.saveAuthInProgress(
                                         AuthInProgress(it.appSecret, generated.token, it.instance)
                                     )
                                     uriHandler.openUri(generated.url)

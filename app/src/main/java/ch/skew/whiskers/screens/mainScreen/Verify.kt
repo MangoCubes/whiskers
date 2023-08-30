@@ -26,7 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import ch.skew.whiskers.data.WhiskersSettings
+import ch.skew.whiskers.data.WhiskersPersistent
 import ch.skew.whiskers.misskey.MisskeyLoginClient
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -64,7 +64,7 @@ fun Verify(
             message.value = "Invalid access."
             return@LaunchedEffect
         }
-        val settings = WhiskersSettings(context)
+        val settings = WhiskersPersistent(context)
         val account = settings.getAuthInProgress.first()
         if(account === null) {
             state.value = QueryStatus.AccountNotFound

@@ -1,5 +1,6 @@
 package ch.skew.whiskers
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,17 +12,21 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.datastore.dataStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import ch.skew.whiskers.data.WhiskersDB
+import ch.skew.whiskers.data.WhiskersSettingsSerializer
 import ch.skew.whiskers.data.accounts.AccountDataViewModel
 import ch.skew.whiskers.data.accounts.AccountEvent
 import ch.skew.whiskers.screens.accountSetup.accountSetup
 import ch.skew.whiskers.screens.mainScreen.main
 import ch.skew.whiskers.ui.theme.WhiskersTheme
+
+val Context.settings by dataStore("settings.json", WhiskersSettingsSerializer)
 
 class MainActivity : ComponentActivity() {
 
