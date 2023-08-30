@@ -5,8 +5,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import ch.skew.whiskers.data.WhiskersDB
 import ch.skew.whiskers.data.WhiskersPersistent
 import ch.skew.whiskers.data.accounts.AccountData
+import ch.skew.whiskers.data.settings.Settings
 import ch.skew.whiskers.misskey.MisskeyClient
 import kotlinx.coroutines.flow.first
 
@@ -16,28 +18,37 @@ fun AccountLoader(
     addAccount: () -> Unit,
     manageAccounts: () -> Unit
 ) {
-    val currentClient = remember { mutableStateOf<MisskeyClient?>(null) }
+    val currentClient = remember { mutableStateOf<Pair<MisskeyClient, Settings>?>(null) }
     val context = LocalContext.current
+
+    suspend fun loadAccount(accountId: Int?) {
+        val accountData = accountId?.let { id ->
+            accounts.find { it.id == id }
+        } ?: accounts[0]
+        val client = MisskeyClient.from(accountData)
+        val settings = accountData.settings?.let {
+            WhiskersDB.getInstance(context).settingsDao.getSettings(it)
+        } ?: Settings(-1)
+        currentClient.value = Pair(client, settings)
+    }
+
     LaunchedEffect(Unit) {
         if(accounts.isEmpty()) {
             addAccount()
             return@LaunchedEffect
         }
-        val accountData = WhiskersPersistent(context).getLastAccount.first()?.let { id ->
-            accounts.find { it.id == id }
-        } ?: accounts[0]
-        val client = MisskeyClient.from(accountData)
-        currentClient.value = client
+        loadAccount(WhiskersPersistent(context).getLastAccount.first())
     }
+
     currentClient.value?.let { client ->
-        Home(accounts, client, addAccount, { id ->
+        Home(accounts, client.first, addAccount, { id ->
             val account = accounts.find {
                 it.id == id
             }
             WhiskersPersistent(context).saveLastAccount(id)
             if(account == null) return@Home false
             else {
-                currentClient.value = MisskeyClient.from(account)
+                loadAccount(id)
                 return@Home true
             }
         }, manageAccounts)

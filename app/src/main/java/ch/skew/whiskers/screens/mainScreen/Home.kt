@@ -71,7 +71,7 @@ sealed class UserQuery {
 @Composable
 @Preview
 fun HomePreview() {
-    Home(listOf(), MisskeyClient("", MisskeyAPI(""), ""), {}, {_ -> return@Home true }, {})
+    Home(listOf(), MisskeyClient("", MisskeyAPI(""), "", -1), {}, {_ -> return@Home true }, {})
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
