@@ -1,6 +1,7 @@
 package ch.skew.whiskers.screens.mainScreen
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.icons.Icons
@@ -31,6 +34,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+// 🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧
+import androidx.compose.ui.graphics.Color.Companion.Gray as Grey
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
@@ -61,7 +66,6 @@ fun NoteCard(
 ) {
     val inlineContent = remember { mutableStateMapOf<String, InlineTextContent>() }
     val context = LocalContext.current
-    val expanded = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     fun requestEmojis(emojiList: List<String>) {
@@ -90,9 +94,7 @@ fun NoteCard(
         onClick = noteScreen,
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(0.dp, if (expanded.value) Dp.Unspecified else 300.dp)
     ) {
-        val overflow = remember { mutableStateOf(false) }
         Column(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -148,6 +150,8 @@ fun NoteCard(
                 )
             }
             note.text?.let { content ->
+                val expanded = remember { mutableStateOf(false) }
+                val overflow = remember { mutableStateOf(false) }
                 val (found, annotatedString) = emojiString(content)
                 found.distinct().let {
                     if(it.isNotEmpty()) requestEmojis(it)
@@ -160,10 +164,9 @@ fun NoteCard(
                 } else {
                     Box(
                         if (overflow.value)
-                            Modifier
-                                .weight(1F)
+                            Modifier.weight(1F)
                                 .fillMaxWidth()
-                        else Modifier,
+                        else Modifier.heightIn(0.dp, if (expanded.value) Dp.Unspecified else 300.dp),
                         contentAlignment = Alignment.BottomCenter
                     ) {
                         Text(
@@ -181,6 +184,31 @@ fun NoteCard(
                                 Text("Expand")
                             }
                         }
+                    }
+                }
+            }
+            note.files?.let { files ->
+                val lazyListState = rememberLazyListState()
+                LazyRow(
+                    state = lazyListState,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    userScrollEnabled = true
+                ) {
+                    items (
+                        count = files.size,
+                        key = {
+                            files[it].id
+                        }
+                    ) { index ->
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(files[index].thumbnailUrl)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = files[index].name,
+                            modifier = Modifier.background(Grey)
+                                .size(100.dp)
+                        )
                     }
                 }
             }
