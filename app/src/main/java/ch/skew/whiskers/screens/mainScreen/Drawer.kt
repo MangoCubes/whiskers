@@ -8,7 +8,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.ManageAccounts
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.NavigationDrawerItem
@@ -41,20 +40,19 @@ fun DrawerPreview() {
         account = MisskeyClient(accessToken = "", api = MisskeyAPI(""), username = "User1"),
         example,
         {},
-        {_, _ -> },
+        {_ -> },
         {}
     )
 }
 
 val itemModifier = Modifier.padding(horizontal = 12.dp)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Drawer(
     account: MisskeyClient,
     accountData: List<AccountData>,
     addAccount: () -> Unit,
-    selectAccount: (String, String) -> Unit,
+    selectAccount: (Int) -> Unit,
     manageAccounts: () -> Unit
 ) {
     val expandAccounts = remember { mutableStateOf(false) }
@@ -86,7 +84,7 @@ fun Drawer(
                             }
                         ) },
                         selected = it.username == account.username,
-                        onClick = { selectAccount(it.username, it.host) },
+                        onClick = { selectAccount(it.id) },
                         modifier = itemModifier
                     )
                 }

@@ -23,8 +23,8 @@ class WhiskersPersistent(
         val tempHost = stringPreferencesKey("tempHost")
     }
 
-    val getLastAccount: Flow<String?> = context.dataStore.data.map {
-        it[lastAccount]
+    val getLastAccount: Flow<Int?> = context.dataStore.data.map {
+        it[lastAccount]?.toInt()
     }
 
     val getAuthInProgress: Flow<AuthInProgress?> = context.dataStore.data.map {
@@ -35,9 +35,9 @@ class WhiskersPersistent(
         else null
     }
 
-    suspend fun saveLastAccount(accountId: String) {
+    suspend fun saveLastAccount(accountId: Int) {
         context.dataStore.edit {
-            it[lastAccount] = accountId
+            it[lastAccount] = accountId.toString()
         }
     }
 

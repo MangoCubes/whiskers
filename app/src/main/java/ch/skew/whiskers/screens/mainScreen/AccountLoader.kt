@@ -8,7 +8,6 @@ import androidx.compose.ui.platform.LocalContext
 import ch.skew.whiskers.data.WhiskersPersistent
 import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.misskey.MisskeyClient
-import ch.skew.whiskers.settings
 import kotlinx.coroutines.flow.first
 
 @Composable
@@ -24,20 +23,18 @@ fun AccountLoader(
             addAccount()
             return@LaunchedEffect
         }
-        val accountData = accounts[0]
-        /**
-         * WhiskersPersistent(context).getLastAccount.first()?.let { name ->
-         *             accounts.find { it.username == name }
-         *         } ?:
-         */
+        val accountData = WhiskersPersistent(context).getLastAccount.first()?.let { id ->
+            accounts.find { it.id == id }
+        } ?: accounts[0]
         val client = MisskeyClient.from(accountData)
         currentClient.value = client
     }
     currentClient.value?.let { client ->
-        Home(accounts, client, addAccount, { name, host ->
+        Home(accounts, client, addAccount, { id ->
             val account = accounts.find {
-                it.username == name && it.host == host
+                it.id == id
             }
+            WhiskersPersistent(context).saveLastAccount(id)
             if(account == null) return@Home false
             else {
                 currentClient.value = MisskeyClient.from(account)

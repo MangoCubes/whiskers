@@ -71,7 +71,7 @@ sealed class UserQuery {
 @Composable
 @Preview
 fun HomePreview() {
-    Home(listOf(), MisskeyClient("", MisskeyAPI(""), ""), {}, {_, _ -> return@Home true }, {})
+    Home(listOf(), MisskeyClient("", MisskeyAPI(""), ""), {}, {_ -> return@Home true }, {})
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -80,7 +80,7 @@ fun Home(
     accountData: List<AccountData>,
     account: MisskeyClient,
     addAccount: () -> Unit,
-    selectAccount: (String, String) -> Boolean,
+    selectAccount: suspend (Int) -> Boolean,
     manageAccounts: () -> Unit
 ) {
     val userQuery = remember { mutableStateOf<UserQuery>(UserQuery.Querying) }
@@ -158,10 +158,10 @@ fun Home(
                 account,
                 accountData,
                 addAccount,
-                { name, host ->
+                { id ->
                     scope.launch {
                         drawerState.close()
-                        if(!selectAccount(name, host)) {
+                        if(!selectAccount(id)) {
                             Toast.makeText(
                                 context,
                                 "Account not found; defaulting to the first account.",
