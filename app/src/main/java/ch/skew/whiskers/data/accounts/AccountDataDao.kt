@@ -12,6 +12,10 @@ interface AccountDataDao{
     fun getAllAccounts(): Flow<List<AccountData>>
     @Query("SELECT * FROM account_data WHERE host = :host AND username = :username")
     fun getAccountInfo(host: String, username: String): Flow<AccountData>
+    @Query("SELECT * FROM account_data WHERE id = :id")
+    fun getAccountInfo(id: Int): Flow<AccountData>
     @Query("DELETE FROM account_data WHERE host = :host AND username = :username")
     suspend fun delete(host: String, username: String)
+    @Query("DELETE FROM account_data WHERE id = :id")
+    suspend fun delete(id: Int)
 }

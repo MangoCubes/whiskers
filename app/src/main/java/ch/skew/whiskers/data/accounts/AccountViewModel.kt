@@ -20,6 +20,12 @@ class AccountDataViewModel(
                     return@async null
                 }
             }
+            is AccountEvent.DeleteAccountById -> {
+                return viewModelScope.async {
+                    dao.delete(e.id)
+                    return@async null
+                }
+            }
             is AccountEvent.AddAccount -> {
                 return viewModelScope.async {
                     try {

@@ -28,10 +28,10 @@ import ch.skew.whiskers.misskey.MisskeyAPI
 import ch.skew.whiskers.misskey.MisskeyClient
 
 val example = listOf(
-    AccountData("example1.com", "", "", "User1"),
-    AccountData("example2.com", "", "", "User2"),
-    AccountData("example3.com", "", "", "User3"),
-    AccountData("example4.com", "", "", "User4"),
+    AccountData(1, "example1.com", "", "", "User1"),
+    AccountData(2, "example2.com", "", "", "User2"),
+    AccountData(3, "example3.com", "", "", "User3"),
+    AccountData(4, "example4.com", "", "", "User4"),
 )
 
 @Composable
