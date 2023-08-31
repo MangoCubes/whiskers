@@ -1,9 +1,15 @@
 package ch.skew.whiskers.screens.mainScreen
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +27,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
@@ -46,6 +53,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -171,6 +179,8 @@ fun Home(
     
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val gallery = remember { mutableStateOf<GalleryContent?>(null) }
+    val showUi = remember { mutableStateOf(true) }
+    val interactionSource = remember { MutableInteractionSource() }
     gallery.value?.let {
         val pagerState = rememberPagerState(
             initialPage = it.current,
@@ -183,7 +193,10 @@ fun Home(
             HorizontalPager(
                 state = pagerState,
                 pageSize = PageSize.Fill,
-                pageCount = it.items.size
+                pageCount = it.items.size,
+                modifier = Modifier.clickable(indication = null, interactionSource = interactionSource) {
+                    showUi.value = !showUi.value
+                }
             ) { index ->
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
@@ -194,6 +207,24 @@ fun Home(
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.fillMaxSize()
                 )
+            }
+            AnimatedVisibility(
+                visible = showUi.value,
+                enter = fadeIn(animationSpec = tween(durationMillis = 150)),
+                exit = fadeOut(animationSpec = tween(durationMillis = 150))
+            ) {
+                Row(
+                    Modifier.background(Color.Black.copy(alpha = 0.5F))
+                        .fillMaxWidth()
+                ) {
+                    IconButton(onClick = { gallery.value = null }) {
+                        Icon(
+                            Icons.Filled.ArrowBack,
+                            "Go back",
+                            tint = Color.White
+                        )
+                    }
+                }
             }
         }
     }

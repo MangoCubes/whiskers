@@ -43,7 +43,6 @@ import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.skew.whiskers.data.settings.NsfwMedia
@@ -174,7 +173,7 @@ fun NoteCard(
                             Modifier
                                 .weight(1F)
                                 .fillMaxWidth()
-                        else Modifier.heightIn(0.dp, if (expanded.value) Dp.Unspecified else 300.dp),
+                        else Modifier.heightIn(0.dp, 300.dp),
                         contentAlignment = Alignment.BottomCenter
                     ) {
                         Text(
