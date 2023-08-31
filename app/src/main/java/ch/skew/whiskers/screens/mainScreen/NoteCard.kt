@@ -1,7 +1,9 @@
 package ch.skew.whiskers.screens.mainScreen
 
+// 🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,6 +21,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -33,9 +36,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-// 🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧
-import androidx.compose.ui.graphics.Color.Companion.Gray as Grey
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
@@ -44,6 +46,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import ch.skew.whiskers.data.settings.NsfwMedia
+import ch.skew.whiskers.data.settings.Settings
 import ch.skew.whiskers.functions.emojiString
 import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.Visibility
@@ -56,13 +60,15 @@ import coil.request.ImageRequest
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import androidx.compose.ui.graphics.Color.Companion.Gray as Grey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteCard(
     note: Note,
     noteScreen: () -> Unit,
-    emojiMap: Map<String, Emoji>
+    emojiMap: Map<String, Emoji>,
+    settings: Settings
 ) {
     val inlineContent = remember { mutableStateMapOf<String, InlineTextContent>() }
     val context = LocalContext.current
@@ -164,7 +170,8 @@ fun NoteCard(
                 } else {
                     Box(
                         if (overflow.value)
-                            Modifier.weight(1F)
+                            Modifier
+                                .weight(1F)
                                 .fillMaxWidth()
                         else Modifier.heightIn(0.dp, if (expanded.value) Dp.Unspecified else 300.dp),
                         contentAlignment = Alignment.BottomCenter
@@ -200,15 +207,30 @@ fun NoteCard(
                             files[it].id
                         }
                     ) { index ->
-                        AsyncImage(
-                            model = ImageRequest.Builder(LocalContext.current)
-                                .data(files[index].thumbnailUrl)
-                                .crossfade(true)
-                                .build(),
-                            contentDescription = files[index].name,
-                            modifier = Modifier.background(Grey)
-                                .size(100.dp)
-                        )
+                        val thumbnail = Modifier
+                            .size(100.dp)
+                            .clickable { }
+                            .background(Grey)
+                        if(files[index].isSensitive && settings.nsfwMedia === NsfwMedia.Hide) {
+                            Box(
+                                modifier = thumbnail,
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Filled.WarningAmber, contentDescription = "NSFW")
+                            }
+                        } else {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(files[index].thumbnailUrl)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = files[index].name,
+                                modifier = if(
+                                        files[index].isSensitive
+                                        && settings.nsfwMedia === NsfwMedia.Blur
+                                    ) thumbnail.blur(20.dp) else thumbnail
+                            )
+                        }
                     }
                 }
             }

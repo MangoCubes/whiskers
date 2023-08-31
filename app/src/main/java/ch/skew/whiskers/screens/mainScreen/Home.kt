@@ -49,6 +49,7 @@ import ch.skew.whiskers.classes.DataQueryStatus
 import ch.skew.whiskers.classes.ErrorQueryStatus
 import ch.skew.whiskers.components.PullRefreshIndicator
 import ch.skew.whiskers.data.accounts.AccountData
+import ch.skew.whiskers.data.settings.Settings
 import ch.skew.whiskers.misskey.MisskeyAPI
 import ch.skew.whiskers.misskey.MisskeyClient
 import ch.skew.whiskers.misskey.data.Note
@@ -71,7 +72,7 @@ sealed class UserQuery {
 @Composable
 @Preview
 fun HomePreview() {
-    Home(listOf(), MisskeyClient("", MisskeyAPI(""), "", -1), {}, {_ -> return@Home true }, {})
+    Home(listOf(), MisskeyClient("", MisskeyAPI(""), "", -1), {}, {_ -> return@Home true }, {}, Settings(1))
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
@@ -81,7 +82,8 @@ fun Home(
     account: MisskeyClient,
     addAccount: () -> Unit,
     selectAccount: suspend (Int) -> Boolean,
-    manageAccounts: () -> Unit
+    manageAccounts: () -> Unit,
+    settings: Settings
 ) {
     val userQuery = remember { mutableStateOf<UserQuery>(UserQuery.Querying) }
     val notesQuery = remember { mutableStateOf<ErrorQueryStatus>(ErrorQueryStatus.Querying(false)) }
@@ -306,7 +308,7 @@ fun Home(
                                                 notes[it].id
                                             }
                                         ) { index ->
-                                            NoteCard(notes[index], {}, emojiMap.item)
+                                            NoteCard(notes[index], {}, emojiMap.item, settings)
                                         }
                                     }
                                 }

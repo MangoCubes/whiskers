@@ -51,6 +51,6 @@ fun AccountLoader(
                 loadAccount(id)
                 return@Home true
             }
-        }, manageAccounts)
+        }, manageAccounts, client.second)
     }
 }
