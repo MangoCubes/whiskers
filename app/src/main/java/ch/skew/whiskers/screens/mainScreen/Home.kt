@@ -1,6 +1,7 @@
 package ch.skew.whiskers.screens.mainScreen
 
 import android.widget.Toast
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -42,9 +46,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import ch.skew.whiskers.classes.DataQueryStatus
 import ch.skew.whiskers.classes.ErrorQueryStatus
 import ch.skew.whiskers.components.PullRefreshIndicator
@@ -52,6 +59,7 @@ import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.data.settings.Settings
 import ch.skew.whiskers.misskey.MisskeyAPI
 import ch.skew.whiskers.misskey.MisskeyClient
+import ch.skew.whiskers.misskey.data.DriveFile
 import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.UserDetailed
 import ch.skew.whiskers.misskey.data.api.Emoji
@@ -60,8 +68,15 @@ import ch.skew.whiskers.misskey.error.api.ClientError
 import ch.skew.whiskers.misskey.error.api.ForbiddenError
 import ch.skew.whiskers.misskey.error.api.InternalServerError
 import ch.skew.whiskers.misskey.error.api.NotFoundError
+import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import kotlinx.coroutines.launch
+
+data class GalleryContent(
+    val items: List<DriveFile>,
+    val current: Int
+)
 
 sealed class UserQuery {
     object Querying: UserQuery()
@@ -75,7 +90,9 @@ fun HomePreview() {
     Home(listOf(), MisskeyClient("", MisskeyAPI(""), "", -1), {}, {_ -> return@Home true }, {}, Settings(1))
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun Home(
     accountData: List<AccountData>,
@@ -153,7 +170,33 @@ fun Home(
     }
     
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-
+    val gallery = remember { mutableStateOf<GalleryContent?>(null) }
+    gallery.value?.let {
+        val pagerState = rememberPagerState(
+            initialPage = it.current,
+            initialPageOffsetFraction = 0f
+        )
+        Dialog(
+            onDismissRequest = { gallery.value = null },
+            properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true, usePlatformDefaultWidth = false)
+        ){
+            HorizontalPager(
+                state = pagerState,
+                pageSize = PageSize.Fill,
+                pageCount = it.items.size
+            ) { index ->
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(it.items[index].url)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = it.items[index].name,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+        }
+    }
     ModalNavigationDrawer(
         drawerContent = {
             Drawer(
@@ -308,7 +351,9 @@ fun Home(
                                                 notes[it].id
                                             }
                                         ) { index ->
-                                            NoteCard(notes[index], {}, emojiMap.item, settings)
+                                            NoteCard(notes[index], {}, emojiMap.item, settings, {
+                                                gallery.value = it
+                                            })
                                         }
                                     }
                                 }

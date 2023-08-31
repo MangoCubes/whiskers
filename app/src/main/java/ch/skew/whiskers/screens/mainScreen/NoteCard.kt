@@ -68,7 +68,8 @@ fun NoteCard(
     note: Note,
     noteScreen: () -> Unit,
     emojiMap: Map<String, Emoji>,
-    settings: Settings
+    settings: Settings,
+    openGallery: (GalleryContent) -> Unit
 ) {
     val inlineContent = remember { mutableStateMapOf<String, InlineTextContent>() }
     val context = LocalContext.current
@@ -209,7 +210,7 @@ fun NoteCard(
                     ) { index ->
                         val thumbnail = Modifier
                             .size(100.dp)
-                            .clickable { }
+                            .clickable { openGallery(GalleryContent(files, index)) }
                             .background(Grey)
                         if(files[index].isSensitive && settings.nsfwMedia === NsfwMedia.Hide) {
                             Box(
