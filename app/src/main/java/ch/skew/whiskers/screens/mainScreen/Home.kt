@@ -9,6 +9,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,6 +28,7 @@ import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
@@ -33,6 +36,8 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material.rememberSwipeableState
+import androidx.compose.material.swipeable
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
@@ -55,8 +60,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -80,6 +88,7 @@ import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 data class GalleryContent(
     val items: List<DriveFile>,
@@ -179,11 +188,17 @@ fun Home(
     
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val gallery = remember { mutableStateOf<GalleryContent?>(null) }
-    val showUi = remember { mutableStateOf(true) }
-    val interactionSource = remember { MutableInteractionSource() }
-    gallery.value?.let {
+    gallery.value?.let { media ->
+        val showUi = remember { mutableStateOf(true) }
+        val height = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
+        val interactionSource = remember { MutableInteractionSource() }
+        val swipeState = rememberSwipeableState(0) {
+            if(it != 0) gallery.value = null
+            return@rememberSwipeableState true
+        }
+        val anchors = mapOf(0f to 0, height to 1, -height to -1)
         val pagerState = rememberPagerState(
-            initialPage = it.current,
+            initialPage = media.current,
             initialPageOffsetFraction = 0f
         )
         Dialog(
@@ -193,19 +208,26 @@ fun Home(
             HorizontalPager(
                 state = pagerState,
                 pageSize = PageSize.Fill,
-                pageCount = it.items.size,
+                pageCount = media.items.size,
                 modifier = Modifier.clickable(indication = null, interactionSource = interactionSource) {
                     showUi.value = !showUi.value
-                }
+                }.swipeable(
+                    state = swipeState,
+                    anchors = anchors,
+                    thresholds = { _, _ -> FractionalThreshold(0.5f) },
+                    orientation = Orientation.Vertical
+                )
             ) { index ->
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(it.items[index].url)
+                        .data(media.items[index].url)
                         .crossfade(true)
                         .build(),
-                    contentDescription = it.items[index].name,
+                    contentDescription = media.items[index].name,
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.fillMaxSize()
+                        .offset { IntOffset(0, swipeState.offset.value.roundToInt()) }
+
                 )
             }
             AnimatedVisibility(
