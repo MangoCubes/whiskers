@@ -1,4 +1,4 @@
-package ch.skew.whiskers.screens.mainScreen
+package ch.skew.whiskers.components
 
 // 🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧🇬🇧
 import androidx.compose.foundation.Image
@@ -51,6 +51,7 @@ import ch.skew.whiskers.functions.emojiString
 import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.Visibility
 import ch.skew.whiskers.misskey.data.api.Emoji
+import ch.skew.whiskers.screens.mainScreen.GalleryContent
 import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader

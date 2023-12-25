@@ -1,4 +1,4 @@
-package ch.skew.whiskers.screens.mainScreen
+package ch.skew.whiskers.components
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow

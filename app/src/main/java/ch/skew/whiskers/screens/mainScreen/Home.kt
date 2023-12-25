@@ -70,6 +70,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import ch.skew.whiskers.classes.DataQueryStatus
 import ch.skew.whiskers.classes.ErrorQueryStatus
+import ch.skew.whiskers.components.NoteCard
 import ch.skew.whiskers.components.PullRefreshIndicator
 import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.data.settings.Settings
