@@ -1,16 +1,9 @@
 package ch.skew.whiskers.screens.mainScreen
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,26 +11,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageSize
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
-import androidx.compose.material.rememberSwipeableState
-import androidx.compose.material.swipeable
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
@@ -58,25 +43,19 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import ch.skew.whiskers.classes.DataQueryStatus
 import ch.skew.whiskers.classes.ErrorQueryStatus
+import ch.skew.whiskers.components.GalleryContent
+import ch.skew.whiskers.components.GalleryViewer
 import ch.skew.whiskers.components.NoteCard
 import ch.skew.whiskers.components.PullRefreshIndicator
 import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.data.settings.Settings
 import ch.skew.whiskers.misskey.MisskeyAPI
 import ch.skew.whiskers.misskey.MisskeyClient
-import ch.skew.whiskers.misskey.data.DriveFile
 import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.UserDetailed
 import ch.skew.whiskers.misskey.data.api.Emoji
@@ -85,16 +64,8 @@ import ch.skew.whiskers.misskey.error.api.ClientError
 import ch.skew.whiskers.misskey.error.api.ForbiddenError
 import ch.skew.whiskers.misskey.error.api.InternalServerError
 import ch.skew.whiskers.misskey.error.api.NotFoundError
-import coil.compose.AsyncImage
 import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
-
-data class GalleryContent(
-    val items: List<DriveFile>,
-    val current: Int
-)
 
 sealed class UserQuery {
     object Querying: UserQuery()
@@ -189,66 +160,9 @@ fun Home(
     
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val gallery = remember { mutableStateOf<GalleryContent?>(null) }
-    gallery.value?.let { media ->
-        val showUi = remember { mutableStateOf(true) }
-        val height = with(LocalDensity.current) { LocalConfiguration.current.screenHeightDp.dp.toPx() }
-        val interactionSource = remember { MutableInteractionSource() }
-        val swipeState = rememberSwipeableState(0) {
-            if(it != 0) gallery.value = null
-            return@rememberSwipeableState true
-        }
-        val anchors = mapOf(0f to 0, height to 1, -height to -1)
-        val pagerState = rememberPagerState(
-            initialPage = media.current,
-            initialPageOffsetFraction = 0f
-        )
-        Dialog(
-            onDismissRequest = { gallery.value = null },
-            properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true, usePlatformDefaultWidth = false)
-        ){
-            HorizontalPager(
-                state = pagerState,
-                pageSize = PageSize.Fill,
-                pageCount = media.items.size,
-                modifier = Modifier.clickable(indication = null, interactionSource = interactionSource) {
-                    showUi.value = !showUi.value
-                }.swipeable(
-                    state = swipeState,
-                    anchors = anchors,
-                    thresholds = { _, _ -> FractionalThreshold(0.5f) },
-                    orientation = Orientation.Vertical
-                )
-            ) { index ->
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(media.items[index].url)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = media.items[index].name,
-                    contentScale = ContentScale.Fit,
-                    modifier = Modifier.fillMaxSize()
-                        .offset { IntOffset(0, swipeState.offset.value.roundToInt()) }
-
-                )
-            }
-            AnimatedVisibility(
-                visible = showUi.value,
-                enter = fadeIn(animationSpec = tween(durationMillis = 150)),
-                exit = fadeOut(animationSpec = tween(durationMillis = 150))
-            ) {
-                Row(
-                    Modifier.background(Color.Black.copy(alpha = 0.5F))
-                        .fillMaxWidth()
-                ) {
-                    IconButton(onClick = { gallery.value = null }) {
-                        Icon(
-                            Icons.Filled.ArrowBack,
-                            "Go back",
-                            tint = Color.White
-                        )
-                    }
-                }
-            }
+    gallery.value?.let {
+        GalleryViewer(it) {
+            gallery.value = null
         }
     }
     ModalNavigationDrawer(
