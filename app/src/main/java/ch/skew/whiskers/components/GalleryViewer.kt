@@ -9,6 +9,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,23 +23,29 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
+import ch.skew.whiskers.classes.ErrorQueryStatus
 import ch.skew.whiskers.misskey.data.DriveFile
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -69,30 +78,63 @@ fun GalleryViewer(media: GalleryContent, close: () -> Unit) {
         onDismissRequest = close,
         properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true, usePlatformDefaultWidth = false)
     ){
+        (LocalView.current.parent as DialogWindowProvider).window.setDimAmount(1f)
         HorizontalPager(
             state = pagerState,
             pageSize = PageSize.Fill,
             pageCount = media.items.size,
-            modifier = Modifier.clickable(indication = null, interactionSource = interactionSource) {
-                showUi.value = !showUi.value
-            }.swipeable(
-                state = swipeState,
-                anchors = anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.5f) },
-                orientation = Orientation.Vertical
-            )
+            modifier = Modifier
+                .clickable(indication = null, interactionSource = interactionSource) {
+                    showUi.value = !showUi.value
+                }
+                .swipeable(
+                    state = swipeState,
+                    anchors = anchors,
+                    thresholds = { _, _ -> FractionalThreshold(0.5f) },
+                    orientation = Orientation.Vertical
+                )
         ) { index ->
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(media.items[index].url)
-                    .crossfade(true)
-                    .build(),
-                contentDescription = media.items[index].name,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.fillMaxSize()
-                    .offset { IntOffset(0, swipeState.offset.value.roundToInt()) }
-
-            )
+            val status = remember { mutableStateOf<ErrorQueryStatus>(ErrorQueryStatus.Querying(false)) }
+            status.value.let { s ->
+                if (s is ErrorQueryStatus.Error) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(text = "Failed to load image", color = Color.White)
+                            Text(s.error.toString(), color = Color.White)
+                            IconButton(onClick = {
+                                status.value = ErrorQueryStatus.Querying(true)
+                            }) {
+                                Icon(
+                                    Icons.Filled.Refresh,
+                                    "Reload",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(media.items[index].url)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = media.items[index].name,
+                        contentScale = ContentScale.Fit,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .offset { IntOffset(0, swipeState.offset.value.roundToInt()) },
+                        onError = {
+                            status.value = ErrorQueryStatus.Error(it.result.throwable)
+                        }
+                    )
+                }
+            }
         }
         AnimatedVisibility(
             visible = showUi.value,
@@ -100,7 +142,8 @@ fun GalleryViewer(media: GalleryContent, close: () -> Unit) {
             exit = fadeOut(animationSpec = tween(durationMillis = 150))
         ) {
             Row(
-                Modifier.background(Color.Black.copy(alpha = 0.5F))
+                Modifier
+                    .background(Color.Black.copy(alpha = 0.5F))
                     .fillMaxWidth()
             ) {
                 IconButton(onClick = close) {
