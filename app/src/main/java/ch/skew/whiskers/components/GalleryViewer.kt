@@ -98,7 +98,8 @@ fun GalleryViewer(media: GalleryContent, close: () -> Unit) {
             status.value.let { s ->
                 if (s is ErrorQueryStatus.Error) {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize()
+                            .offset { IntOffset(0, swipeState.offset.value.roundToInt()) },
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
