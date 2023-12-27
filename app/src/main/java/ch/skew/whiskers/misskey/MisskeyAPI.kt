@@ -3,6 +3,8 @@ package ch.skew.whiskers.misskey
 import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.api.AccountIReqData
 import ch.skew.whiskers.misskey.data.api.AccountIResData
+import ch.skew.whiskers.misskey.data.api.CreateReactionReqData
+import ch.skew.whiskers.misskey.data.api.CreateReactionResData
 import ch.skew.whiskers.misskey.data.api.EmojisReqData
 import ch.skew.whiskers.misskey.data.api.EmojisResData
 import ch.skew.whiskers.misskey.data.api.NotesTimelineReqData
@@ -30,6 +32,9 @@ import kotlinx.serialization.json.Json
 class MisskeyAPI(
     private val instance: String,
 ) {
+    suspend fun createReaction(reaction: CreateReactionReqData): Result<CreateReactionResData>{
+        return this.queryWithAuth(listOf("notes", "reactions", "create"), reaction)
+    }
     suspend fun notesTimeline(limit: NotesTimelineReqData): Result<List<Note>> {
         return this.queryWithAuth(listOf("notes", "timeline"), limit)
     }
