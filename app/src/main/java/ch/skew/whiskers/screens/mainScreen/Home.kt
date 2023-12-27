@@ -79,9 +79,7 @@ fun HomePreview() {
     Home(listOf(), MisskeyClient(MisskeyAPI("", ""), "", -1), {}, {_ -> return@Home true }, {}, Settings(1))
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
-    ExperimentalFoundationApi::class
-)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun Home(
     accountData: List<AccountData>,
@@ -127,10 +125,29 @@ fun Home(
         )
     }
 
-    suspend fun toggleReaction(note: Note, reaction: String): Boolean {
+    suspend fun toggleReaction(index: Int, reaction: String): Boolean {
+        val note = notes[index]
         val myReaction = note.myReaction
         if(myReaction == null) {
             // Create reaction
+            val reactionCount = note.reactions[reaction]
+            val newMap: Map<String, Int>
+            if(reactionCount != null) {
+                // Add reaction locally
+                newMap = note.reactions.toMutableMap().apply {
+                    this[reaction] = reactionCount + 1
+                }
+            } else {
+                // Create reaction locally
+                newMap = note.reactions.toMutableMap().apply {
+                    this[reaction] = 1
+                }
+            }
+            notes[index] = note.copy(reactions = newMap)
+            println("Sending reaction $reaction to ${note.id}")
+            println(note.reactions)
+            println(note.hashCode())
+            println(notes[index].hashCode())
             return account.createReaction(reaction, note.id).isSuccess
         } else {
             // Reaction already exists
@@ -341,7 +358,9 @@ fun Home(
                                                 emojiMap.item,
                                                 settings,
                                                 { gallery.value = it },
-                                                { scope.launch { toggleReaction(notes[index], it) } }
+                                                {
+                                                    scope.launch { toggleReaction(index, it) }
+                                                }
                                             )
                                         }
                                     }
