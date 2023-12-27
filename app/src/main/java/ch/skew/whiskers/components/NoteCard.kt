@@ -64,11 +64,18 @@ import androidx.compose.ui.graphics.Color.Companion.Gray as Grey
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteCard(
+    // The note to display
     note: Note,
+    // Callback to open the note screen
     noteScreen: () -> Unit,
+    // Map of emojis, key is the name of the emoji
     emojiMap: Map<String, Emoji>,
+    // Settings used to determine how to display the note
     settings: Settings,
-    openGallery: (GalleryContent) -> Unit
+    // Callback to open the full screen gallery
+    openGallery: (GalleryContent) -> Unit,
+    // Callback to toggle a reaction
+    toggleReaction: (String) -> Unit
 ) {
     val inlineContent = remember { mutableStateMapOf<String, InlineTextContent>() }
     val context = LocalContext.current
@@ -238,7 +245,8 @@ fun NoteCard(
                 reactions = note.reactions,
                 enableAdd = false,
                 expanded = false,
-                maxHeight = 200
+                maxHeight = 200,
+                toggleReaction = toggleReaction
             )
         }
     }

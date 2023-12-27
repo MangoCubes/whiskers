@@ -76,7 +76,7 @@ sealed class UserQuery {
 @Composable
 @Preview
 fun HomePreview() {
-    Home(listOf(), MisskeyClient("", MisskeyAPI(""), "", -1), {}, {_ -> return@Home true }, {}, Settings(1))
+    Home(listOf(), MisskeyClient(MisskeyAPI("", ""), "", -1), {}, {_ -> return@Home true }, {}, Settings(1))
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class,
@@ -125,6 +125,22 @@ fun Home(
                 return false
             }
         )
+    }
+
+    suspend fun toggleReaction(note: Note, reaction: String): Boolean {
+        val myReaction = note.myReaction
+        if(myReaction == null) {
+            // Create reaction
+            return account.createReaction(reaction, note.id).isSuccess
+        } else {
+            // Reaction already exists
+            return false
+//            if(myReaction == reaction) {
+//                // Remove reaction
+//            } else {
+//                // Change reaction
+//            }
+        }
     }
 
     suspend fun reloadNotes() {
@@ -319,9 +335,14 @@ fun Home(
                                                 notes[it].id
                                             }
                                         ) { index ->
-                                            NoteCard(notes[index], {}, emojiMap.item, settings, {
-                                                gallery.value = it
-                                            })
+                                            NoteCard(
+                                                notes[index],
+                                                {},
+                                                emojiMap.item,
+                                                settings,
+                                                { gallery.value = it },
+                                                { scope.launch { toggleReaction(notes[index], it) } }
+                                            )
                                         }
                                     }
                                 }

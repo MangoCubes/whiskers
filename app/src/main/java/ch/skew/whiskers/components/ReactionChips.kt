@@ -19,6 +19,7 @@ fun ReactionChips(
     maxHeight: Int,
     expanded: Boolean,
     enableAdd: Boolean,
+    toggleReaction: (String) -> Unit
 ) {
     FlowRow(
         if (expanded) Modifier.heightIn(max = maxHeight.dp)
@@ -26,7 +27,7 @@ fun ReactionChips(
     ) {
         reactions.map { entry ->
             AssistChip(
-                onClick = { /*TODO*/ },
+                onClick = { toggleReaction(entry.key) },
                 label = { Text(entry.value.toString()) },
                 leadingIcon = { Text(entry.key) },
             )

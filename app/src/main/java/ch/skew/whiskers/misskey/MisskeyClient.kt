@@ -15,7 +15,7 @@ class MisskeyClient(
     val id: Int
 ) {
     suspend fun createReaction(reaction: String, note: String): Result<CreateReactionResData> {
-        return this.api.createReaction(CreateReactionReqData(reaction, note))
+        return this.api.createReaction(CreateReactionReqData(note, reaction))
     }
     suspend fun getDetailedUserData(): Result<AccountIResData> {
         return this.api.accountI()
