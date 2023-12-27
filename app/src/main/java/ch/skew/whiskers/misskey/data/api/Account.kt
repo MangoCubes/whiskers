@@ -4,8 +4,6 @@ import ch.skew.whiskers.misskey.data.UserDetailed
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AccountIReqData(
-    val i: String
-)
+object AccountIReqData
 
 typealias AccountIResData = UserDetailed

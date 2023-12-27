@@ -37,7 +37,7 @@ val example = listOf(
 @Preview
 fun DrawerPreview() {
     Drawer(
-        account = MisskeyClient(accessToken = "", api = MisskeyAPI(""), username = "User1", id = -1),
+        account = MisskeyClient( api = MisskeyAPI("", ""), username = "User1", id = -1),
         example,
         {},
         {_ -> },

@@ -31,6 +31,7 @@ import kotlinx.serialization.json.Json
 
 class MisskeyAPI(
     private val instance: String,
+    private val token: String
 ) {
     suspend fun createReaction(reaction: CreateReactionReqData): Result<CreateReactionResData>{
         return this.queryWithAuth(listOf("notes", "reactions", "create"), reaction)
@@ -38,8 +39,8 @@ class MisskeyAPI(
     suspend fun notesTimeline(limit: NotesTimelineReqData): Result<List<Note>> {
         return this.queryWithAuth(listOf("notes", "timeline"), limit)
     }
-    suspend fun accountI(token: String): Result<AccountIResData> {
-        return this.queryWithAuth(listOf("i"), AccountIReqData(token))
+    suspend fun accountI(): Result<AccountIResData> {
+        return this.queryWithAuth(listOf("i"), AccountIReqData)
     }
 
     suspend fun metaEmojis(): Result<EmojisResData> {
@@ -61,8 +62,9 @@ class MisskeyAPI(
                 }
                 contentType(ContentType.parse("application/json"))
                 setBody(body)
+                headers["Authorization"] = "Bearer $token"
             }
-            println(res.body<String>())
+            println(res.status.value.toString() + res.body<String>())
             when (res.status.value) {
                 200 -> Result.success(res.body())
                 403 -> Result.failure(ForbiddenError(res.body()))

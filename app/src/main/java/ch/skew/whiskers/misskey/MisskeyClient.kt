@@ -10,7 +10,6 @@ import ch.skew.whiskers.misskey.data.api.NotesTimelineReqData
 
 
 class MisskeyClient(
-    private val accessToken: String,
     private val api: MisskeyAPI,
     val username: String,
     val id: Int
@@ -19,7 +18,7 @@ class MisskeyClient(
         return this.api.createReaction(CreateReactionReqData(reaction, note))
     }
     suspend fun getDetailedUserData(): Result<AccountIResData> {
-        return this.api.accountI(accessToken)
+        return this.api.accountI()
     }
 
     suspend fun getEmojis(): Result<EmojisResData> {
@@ -38,7 +37,6 @@ class MisskeyClient(
         withReplies: Boolean? = null
     ): Result<List<Note>> {
         val body = NotesTimelineReqData(
-            accessToken,
             limit,
             sinceId,
             untilId,
@@ -56,8 +54,7 @@ class MisskeyClient(
     companion object {
         fun from(data: AccountData): MisskeyClient {
             return MisskeyClient(
-                data.accessToken,
-                MisskeyAPI(data.host),
+                MisskeyAPI(data.host, data.accessToken),
                 data.username,
                 data.id
             )
