@@ -31,3 +31,10 @@ data class CreateReactionReqData(
 )
 
 typealias CreateReactionResData = Unit
+
+@Serializable
+data class DeleteReactionReqData(
+    val noteId: String
+)
+
+typealias DeleteReactionResData = Unit
