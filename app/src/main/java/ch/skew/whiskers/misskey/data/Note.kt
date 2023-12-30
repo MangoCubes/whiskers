@@ -4,7 +4,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-enum class Visibility() {
+enum class Visibility {
     @SerialName("public")
     Public,
     @SerialName("followers")
@@ -13,6 +13,18 @@ enum class Visibility() {
     Home,
     @SerialName("specified")
     Direct
+}
+
+@Serializable
+enum class ReactionAcceptance {
+    @SerialName("likeOnly")
+    LikeOnly,
+    @SerialName("likeOnlyForRemote")
+    LikeOnlyForRemote,
+    @SerialName("nonSensitiveOnly")
+    NonSensitiveOnly,
+    @SerialName("nonSensitiveOnlyForLocalLikeOnlyForRemote")
+    NonSensitiveOnlyForLocalLikeOnlyForRemote
 }
 @Serializable
 data class Note(
@@ -38,11 +50,12 @@ data class Note(
     val channelId: String? = null,
     // val channel: Channel? = null,
     val localOnly: Boolean? = null,
-    val reactionAcceptance: String? = null,
+    // null implies accepting any reaction from anyone
+    val reactionAcceptance: ReactionAcceptance? = null,
     val reactions: Map<String, Int>,
     val renoteCount: Int,
     val repliesCount: Int,
     val uri: String? = null,
     val url: String? = null,
-     val myReaction: String? = null
+    val myReaction: String? = null
 )
