@@ -144,11 +144,14 @@ fun Home(
                 }
             }
             notes[index] = note.copy(reactions = newMap)
-            println("Sending reaction $reaction to ${note.id}")
-            println(note.reactions)
-            println(note.hashCode())
-            println(notes[index].hashCode())
-            return account.createReaction(reaction, note.id).isSuccess
+            val success = account.createReaction(reaction, note.id).isSuccess
+            if(!success) {
+                // Remove reaction locally
+                notes[index] = note.copy(reactions = note.reactions.toMutableMap().apply {
+                    this[reaction] = reactionCount ?: 0
+                })
+            }
+            return success
         } else {
             // Reaction already exists
             return false
