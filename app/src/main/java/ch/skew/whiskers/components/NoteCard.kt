@@ -295,7 +295,8 @@ fun NoteCard(
                 toggleReaction = {
                     scope.launch { toggleReaction(it) }
                 },
-                loadingReaction = updatingReaction.value
+                loadingReaction = updatingReaction.value,
+                myReaction = note.myReaction
             )
         }
     }
