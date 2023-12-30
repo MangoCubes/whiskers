@@ -7,6 +7,8 @@ import ch.skew.whiskers.misskey.data.api.CreateReactionReqData
 import ch.skew.whiskers.misskey.data.api.CreateReactionResData
 import ch.skew.whiskers.misskey.data.api.EmojisReqData
 import ch.skew.whiskers.misskey.data.api.EmojisResData
+import ch.skew.whiskers.misskey.data.api.GetReactionsReqData
+import ch.skew.whiskers.misskey.data.api.GetReactionsResData
 import ch.skew.whiskers.misskey.data.api.NotesTimelineReqData
 import ch.skew.whiskers.misskey.data.api.PingReqData
 import ch.skew.whiskers.misskey.data.api.PingResData
@@ -33,6 +35,10 @@ class MisskeyAPI(
     private val instance: String,
     private val token: String
 ) {
+
+    suspend fun getReactions(target: GetReactionsReqData): Result<GetReactionsResData> {
+        return this.queryWithAuth(listOf("notes", "reactions"), target)
+    }
     suspend fun createReaction(reaction: CreateReactionReqData): Result<CreateReactionResData>{
         return this.queryWithAuth(listOf("notes", "reactions", "create"), reaction)
     }
