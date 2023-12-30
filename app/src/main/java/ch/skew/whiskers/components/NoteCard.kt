@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import ch.skew.whiskers.data.settings.NsfwMedia
 import ch.skew.whiskers.data.settings.Settings
 import ch.skew.whiskers.functions.emojiString
+import ch.skew.whiskers.misskey.MisskeyClient
 import ch.skew.whiskers.misskey.data.Note
 import ch.skew.whiskers.misskey.data.Visibility
 import ch.skew.whiskers.misskey.data.api.Emoji
@@ -64,6 +65,7 @@ import androidx.compose.ui.graphics.Color.Companion.Gray as Grey
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteCard(
+    account: MisskeyClient,
     // The note to display
     note: Note,
     // Callback to open the note screen
@@ -74,12 +76,56 @@ fun NoteCard(
     settings: Settings,
     // Callback to open the full screen gallery
     openGallery: (GalleryContent) -> Unit,
-    // Callback to toggle a reaction
-    toggleReaction: (String) -> Unit
+    // Callback to update note
+    updateNote: (Note) -> Unit,
 ) {
     val inlineContent = remember { mutableStateMapOf<String, InlineTextContent>() }
+    val updatingReaction = remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
+    suspend fun toggleReaction(reaction: String): Boolean {
+        val myReaction = note.myReaction
+        updatingReaction.value = reaction
+        if(myReaction == null) {
+            // Create reaction
+            val reactionCount = note.reactions[reaction]
+            val newMap: Map<String, Int>
+            if(reactionCount != null) {
+                // Add reaction locally
+                newMap = note.reactions.toMutableMap().apply {
+                    this[reaction] = reactionCount + 1
+                }
+            } else {
+                // Create reaction locally
+                newMap = note.reactions.toMutableMap().apply {
+                    this[reaction] = 1
+                }
+            }
+            updateNote(note.copy(reactions = newMap))
+            val r = account.createReaction(reaction, note.id)
+            val success = r.isSuccess
+            updatingReaction.value = null
+            if(!success) {
+                // Remove reaction locally
+                updateNote(
+                    note.copy(reactions = note.reactions.toMutableMap().apply {
+                        this[reaction] = reactionCount ?: 0
+                    })
+                )
+            }
+            return success
+        } else {
+            // Reaction already exists
+            updatingReaction.value = null
+            return false
+//            if(myReaction == reaction) {
+//                // Remove reaction
+//            } else {
+//                // Change reaction
+//            }
+        }
+    }
 
     fun requestEmojis(emojiList: List<String>) {
         emojiList.forEach {
@@ -246,7 +292,10 @@ fun NoteCard(
                 enableAdd = false,
                 expanded = false,
                 maxHeight = 200,
-                toggleReaction = toggleReaction
+                toggleReaction = {
+                    scope.launch { toggleReaction(it) }
+                },
+                loadingReaction = updatingReaction.value
             )
         }
     }

@@ -125,44 +125,6 @@ fun Home(
         )
     }
 
-    suspend fun toggleReaction(index: Int, reaction: String): Boolean {
-        val note = notes[index]
-        val myReaction = note.myReaction
-        if(myReaction == null) {
-            // Create reaction
-            val reactionCount = note.reactions[reaction]
-            val newMap: Map<String, Int>
-            if(reactionCount != null) {
-                // Add reaction locally
-                newMap = note.reactions.toMutableMap().apply {
-                    this[reaction] = reactionCount + 1
-                }
-            } else {
-                // Create reaction locally
-                newMap = note.reactions.toMutableMap().apply {
-                    this[reaction] = 1
-                }
-            }
-            notes[index] = note.copy(reactions = newMap)
-            val success = account.createReaction(reaction, note.id).isSuccess
-            if(!success) {
-                // Remove reaction locally
-                notes[index] = note.copy(reactions = note.reactions.toMutableMap().apply {
-                    this[reaction] = reactionCount ?: 0
-                })
-            }
-            return success
-        } else {
-            // Reaction already exists
-            return false
-//            if(myReaction == reaction) {
-//                // Remove reaction
-//            } else {
-//                // Change reaction
-//            }
-        }
-    }
-
     suspend fun reloadNotes() {
         notesQuery.value = ErrorQueryStatus.Querying(true)
         if (loadNotes()) lazyListState.animateScrollToItem(0)
@@ -356,14 +318,13 @@ fun Home(
                                             }
                                         ) { index ->
                                             NoteCard(
+                                                account,
                                                 notes[index],
                                                 {},
                                                 emojiMap.item,
                                                 settings,
                                                 { gallery.value = it },
-                                                {
-                                                    scope.launch { toggleReaction(index, it) }
-                                                }
+                                                { notes[index] = it }
                                             )
                                         }
                                     }
