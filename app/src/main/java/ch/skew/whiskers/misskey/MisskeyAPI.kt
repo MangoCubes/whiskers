@@ -72,7 +72,7 @@ class MisskeyAPI(
             }
             println(res.status.value.toString() + res.body<String>())
             when (res.status.value) {
-                200 -> Result.success(res.body())
+                in 200..299 -> Result.success(res.body())
                 403 -> Result.failure(ForbiddenError(res.body()))
                 418 -> Result.failure(ImAiError(res.body()))
                 400 -> Result.failure(ClientError(res.body()))
@@ -102,7 +102,7 @@ class MisskeyAPI(
                     setBody(body)
                 }
                 when (res.status.value) {
-                    200 -> Result.success(res.body())
+                    in 200..299 -> Result.success(res.body())
                     403 -> Result.failure(ForbiddenError(res.body()))
                     418 -> Result.failure(ImAiError(res.body()))
                     400 -> Result.failure(ClientError(res.body()))
