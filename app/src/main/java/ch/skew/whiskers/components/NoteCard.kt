@@ -87,27 +87,18 @@ fun NoteCard(
     suspend fun toggleReaction(reaction: String): Boolean {
         val myReaction = note.myReaction
         updatingReaction.value = reaction
+        val reactionCount = note.reactions[reaction]
+        val newMap: Map<String, Int>
         if(myReaction == null) {
             // Create reaction
-            val reactionCount = note.reactions[reaction]
-            val newMap: Map<String, Int>
-            if(reactionCount != null) {
-                // Add reaction locally
-                newMap = note.reactions.toMutableMap().apply {
-                    this[reaction] = reactionCount + 1
-                }
-            } else {
-                // Create reaction locally
-                newMap = note.reactions.toMutableMap().apply {
-                    this[reaction] = 1
-                }
+            newMap = note.reactions.toMutableMap().apply {
+                this[reaction] = (reactionCount ?: 0) + 1
             }
-            updateNote(note.copy(reactions = newMap))
-            val r = account.createReaction(reaction, note.id)
-            val success = r.isSuccess
+            updateNote(note.copy(reactions = newMap, myReaction = reaction))
+            val success = account.createReaction(reaction, note.id).isSuccess
             updatingReaction.value = null
             if(!success) {
-                // Remove reaction locally
+                // Revert locally
                 updateNote(
                     note.copy(reactions = note.reactions.toMutableMap().apply {
                         this[reaction] = reactionCount ?: 0
@@ -117,13 +108,43 @@ fun NoteCard(
             return success
         } else {
             // Reaction already exists
-            updatingReaction.value = null
-            return false
-//            if(myReaction == reaction) {
-//                // Remove reaction
-//            } else {
-//                // Change reaction
-//            }
+            if(myReaction == reaction) {
+                // Remove reaction
+                newMap = note.reactions.toMutableMap().apply {
+                    this[reaction] = (reactionCount ?: 1) - 1
+                }
+                updateNote(note.copy(reactions = newMap, myReaction = null))
+                val success = account.deleteReaction(note.id).isSuccess
+                updatingReaction.value = null
+                if(!success) {
+                    // Revert locally
+                    updateNote(
+                        note.copy(reactions = note.reactions.toMutableMap().apply {
+                            this[reaction] = reactionCount ?: 1
+                        })
+                    )
+                }
+                return success
+            } else {
+                // Change reaction
+                newMap = note.reactions.toMutableMap().apply {
+                    this[myReaction] = (this[myReaction] ?: 1) - 1
+                    this[reaction] = (reactionCount ?: 0) + 1
+                }
+                updateNote(note.copy(reactions = newMap, myReaction = reaction))
+                val success = account.deleteReaction(note.id).isSuccess && account.createReaction(reaction, note.id).isSuccess
+                updatingReaction.value = null
+                if(!success) {
+                    // Revert locally
+                    updateNote(
+                        note.copy(reactions = note.reactions.toMutableMap().apply {
+                            this[myReaction] = (this[myReaction] ?: 0) + 1
+                            this[reaction] = reactionCount ?: 1
+                        })
+                    )
+                }
+                return success
+            }
         }
     }
 
