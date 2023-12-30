@@ -30,5 +30,4 @@ data class CreateReactionReqData(
     val reaction: String
 )
 
-@Serializable
-object CreateReactionResData
+typealias CreateReactionResData = Unit

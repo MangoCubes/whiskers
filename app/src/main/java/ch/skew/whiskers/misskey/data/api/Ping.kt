@@ -4,5 +4,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 object PingReqData
-@Serializable
-object PingResData
+
+typealias PingResData = Unit
