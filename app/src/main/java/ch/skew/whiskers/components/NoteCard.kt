@@ -50,6 +50,7 @@ import ch.skew.whiskers.data.settings.Settings
 import ch.skew.whiskers.functions.emojiString
 import ch.skew.whiskers.misskey.MisskeyClient
 import ch.skew.whiskers.misskey.data.Note
+import ch.skew.whiskers.misskey.data.ReactionAcceptance
 import ch.skew.whiskers.misskey.data.Visibility
 import ch.skew.whiskers.misskey.data.api.Emoji
 import coil.compose.AsyncImage
@@ -310,14 +311,20 @@ fun NoteCard(
             }
             ReactionChips(
                 reactions = note.reactions,
-                enableAdd = false,
                 expanded = false,
                 maxHeight = 200,
                 toggleReaction = {
                     scope.launch { toggleReaction(it) }
                 },
                 loadingReaction = updatingReaction.value,
-                myReaction = note.myReaction
+                myReaction = note.myReaction,
+                availableReactions = when(note.reactionAcceptance) {
+                    null -> AvailableReactions.Any
+                    ReactionAcceptance.LikeOnly -> AvailableReactions.LikeOnly
+                    ReactionAcceptance.LikeOnlyForRemote -> if (note.user.host == null) AvailableReactions.Any else AvailableReactions.LikeOnly
+                    ReactionAcceptance.NonSensitiveOnly -> AvailableReactions.NonSensitive
+                    ReactionAcceptance.NonSensitiveOnlyForLocalLikeOnlyForRemote -> if (note.user.host == null) AvailableReactions.NonSensitive else AvailableReactions.LikeOnly
+                }
             )
         }
     }
