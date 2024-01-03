@@ -79,6 +79,8 @@ fun NoteCard(
     openGallery: (GalleryContent) -> Unit,
     // Callback to update note
     updateNote: (Note) -> Unit,
+    // Open reaction selector
+    openReactionSelector: () -> Unit
 ) {
     val inlineContent = remember { mutableStateMapOf<String, InlineTextContent>() }
     val updatingReaction = remember { mutableStateOf<String?>(null) }
@@ -324,7 +326,8 @@ fun NoteCard(
                     ReactionAcceptance.LikeOnlyForRemote -> if (note.user.host == null) AvailableReactions.Any else AvailableReactions.LikeOnly
                     ReactionAcceptance.NonSensitiveOnly -> AvailableReactions.NonSensitive
                     ReactionAcceptance.NonSensitiveOnlyForLocalLikeOnlyForRemote -> if (note.user.host == null) AvailableReactions.NonSensitive else AvailableReactions.LikeOnly
-                }
+                },
+                openReactionSelector = openReactionSelector
             )
         }
     }

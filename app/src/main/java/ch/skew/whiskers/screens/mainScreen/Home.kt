@@ -1,7 +1,6 @@
 package ch.skew.whiskers.screens.mainScreen
 
 import android.widget.Toast
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,6 +22,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DrawerValue
@@ -52,6 +52,7 @@ import ch.skew.whiskers.components.GalleryContent
 import ch.skew.whiskers.components.GalleryViewer
 import ch.skew.whiskers.components.NoteCard
 import ch.skew.whiskers.components.PullRefreshIndicator
+import ch.skew.whiskers.components.ReactionSelector
 import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.data.settings.Settings
 import ch.skew.whiskers.misskey.MisskeyAPI
@@ -93,6 +94,10 @@ fun Home(
     val notesQuery = remember { mutableStateOf<ErrorQueryStatus>(ErrorQueryStatus.Querying(false)) }
     val notes = remember { mutableStateListOf<Note>() }
     val emojis = remember { mutableStateOf<DataQueryStatus<Map<String, Emoji>>>(DataQueryStatus.Querying(false)) }
+    // Reaction selector is open if value is not null
+    // When the reaction is selected, it is applied to the note specified by this
+    val reactionSelection = remember { mutableStateOf<String?>(null) }
+
     val scope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
     val context = LocalContext.current
@@ -324,8 +329,19 @@ fun Home(
                                                 emojiMap.item,
                                                 settings,
                                                 { gallery.value = it },
-                                                { notes[index] = it }
+                                                { notes[index] = it },
+                                                {}
                                             )
+                                        }
+                                    }
+                                    reactionSelection.value.let {
+                                        if(it != null) {
+                                            AlertDialog(onDismissRequest = { reactionSelection.value = null }) {
+                                                Column(modifier = Modifier.padding(16.dp)) {
+                                                    Text("1234")
+                                                    ReactionSelector(emojiMap.item)
+                                                }
+                                            }
                                         }
                                     }
                                 }

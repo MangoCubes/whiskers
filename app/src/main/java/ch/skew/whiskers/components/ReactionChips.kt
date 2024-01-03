@@ -27,7 +27,8 @@ fun ReactionChips(
     availableReactions: AvailableReactions,
     toggleReaction: (String) -> Unit,
     loadingReaction: String?,
-    myReaction: String?
+    myReaction: String?,
+    openReactionSelector: () -> Unit
 ) {
     FlowRow(
         if (expanded) Modifier.heightIn(max = maxHeight.dp)
@@ -50,16 +51,13 @@ fun ReactionChips(
                     leadingIcon = { Text("❤") }
                 )
             }
-            AvailableReactions.Any -> {
+            AvailableReactions.None -> {}
+            else -> {
                 AssistChip(
-                    onClick = { /*TODO*/ },
+                    onClick = openReactionSelector,
                     label = { Text("+") },
                 )
             }
-            AvailableReactions.NonSensitive -> {
-
-            }
-            AvailableReactions.None -> {}
         }
     }
 }
