@@ -341,7 +341,7 @@ fun Home(
                                             },
 
                                         ) {
-                                            ReactionSelector(emojiMap.item)
+                                            ReactionSelector(emojiMap.item.map { it.value })
                                         }
                                     }
                                 }
