@@ -38,13 +38,13 @@ sealed class ReactionSection {
 
 
 @Composable
-fun ReactionSelectorSection(emojis: List<String>) {
+fun ReactionSelectorSection(emojis: List<String>, createReaction: (String) -> Unit) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(40.dp),
     ) {
         items(emojis) { i ->
             TextButton(
-                onClick = { /*TODO*/ }
+                onClick = { createReaction(i) }
             ) {
                 Text(i)
             }
@@ -53,7 +53,7 @@ fun ReactionSelectorSection(emojis: List<String>) {
 }
 
 @Composable
-fun CustomReactionSelectorSection(emojis: List<Emoji>) {
+fun CustomReactionSelectorSection(emojis: List<Emoji>, createReaction: (String) -> Unit) {
     if(emojis.isEmpty()) {
         Box(
             contentAlignment = Alignment.Center,
@@ -72,7 +72,7 @@ fun CustomReactionSelectorSection(emojis: List<Emoji>) {
         ) {
             items(emojis) { emoji ->
                 TextButton(
-                    onClick = { /*TODO*/ }
+                    onClick = { createReaction(emoji.name) }
                 ) {
                     val image = ImageRequest.Builder(context)
                         .data(emoji.url)
@@ -115,7 +115,7 @@ val sections: List<ReactionSection> = listOf(
     ReactionSection.BuiltIn("Flags", "\uD83C\uDFC1\uD83D\uDEA9\uD83C\uDFF4\u200D☠\uFE0F", flags)
 )
     @Composable
-fun ReactionSelector(reactions: List<Emoji>) {
+fun ReactionSelector(reactions: List<Emoji>, createReaction: (String) -> Unit) {
     val selected = remember { mutableStateOf(1) }
     ScrollableTabRow(selectedTabIndex = selected.value) {
         sections.forEachIndexed { idx, section ->
@@ -144,10 +144,10 @@ fun ReactionSelector(reactions: List<Emoji>) {
     }
     when(val section = sections[selected.value]) {
         is ReactionSection.BuiltIn -> {
-            ReactionSelectorSection(emojis = section.emojis)
+            ReactionSelectorSection(emojis = section.emojis, createReaction = createReaction)
         }
         is ReactionSection.Custom -> {
-            CustomReactionSelectorSection(emojis = reactions)
+            CustomReactionSelectorSection(emojis = reactions, createReaction = createReaction)
         }
     }
 }

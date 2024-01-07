@@ -31,8 +31,6 @@ fun ReactionChips(
     availableReactions: AvailableReactions,
     // Callback to toggle a reaction
     toggleReaction: (String) -> Unit,
-    // Reaction that is currently being added
-    loadingReaction: String?,
     // Reaction that the user has added
     myReaction: String?,
     // Callback to open the reaction selector
@@ -47,7 +45,6 @@ fun ReactionChips(
                 onClick = { toggleReaction(entry.key) },
                 label = { Text(entry.value.toString()) },
                 leadingIcon = { Text(entry.key) },
-                enabled = loadingReaction != entry.key,
                 selected = myReaction == entry.key
             )
         }

@@ -66,7 +66,6 @@ import androidx.compose.ui.graphics.Color.Companion.Gray as Grey
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NoteCard(
-    account: MisskeyClient,
     // The note to display
     note: Note,
     // Callback to open the note screen
@@ -77,79 +76,14 @@ fun NoteCard(
     settings: Settings,
     // Callback to open the full screen gallery
     openGallery: (GalleryContent) -> Unit,
-    // Callback to update note
-    updateNote: (Note) -> Unit,
     // Callback to open the reaction selector
-    openSelector: () -> Unit
+    openSelector: () -> Unit,
+    // Callback to toggle a reaction
+    toggleReaction: (String) -> Unit
 ) {
     val inlineContent = remember { mutableStateMapOf<String, InlineTextContent>() }
-    val updatingReaction = remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-
-    suspend fun toggleReaction(reaction: String): Boolean {
-        val myReaction = note.myReaction
-        updatingReaction.value = reaction
-        val reactionCount = note.reactions[reaction]
-        val newMap: Map<String, Int>
-        if(myReaction == null) {
-            // Create reaction
-            newMap = note.reactions.toMutableMap().apply {
-                this[reaction] = (reactionCount ?: 0) + 1
-            }
-            updateNote(note.copy(reactions = newMap, myReaction = reaction))
-            val success = account.createReaction(reaction, note.id).isSuccess
-            updatingReaction.value = null
-            if(!success) {
-                // Revert locally
-                updateNote(
-                    note.copy(reactions = note.reactions.toMutableMap().apply {
-                        this[reaction] = reactionCount ?: 0
-                    })
-                )
-            }
-            return success
-        } else {
-            // Reaction already exists
-            if(myReaction == reaction) {
-                // Remove reaction
-                newMap = note.reactions.toMutableMap().apply {
-                    this[reaction] = (reactionCount ?: 1) - 1
-                }
-                updateNote(note.copy(reactions = newMap, myReaction = null))
-                val success = account.deleteReaction(note.id).isSuccess
-                updatingReaction.value = null
-                if(!success) {
-                    // Revert locally
-                    updateNote(
-                        note.copy(reactions = note.reactions.toMutableMap().apply {
-                            this[reaction] = reactionCount ?: 1
-                        })
-                    )
-                }
-                return success
-            } else {
-                // Change reaction
-                newMap = note.reactions.toMutableMap().apply {
-                    this[myReaction] = (this[myReaction] ?: 1) - 1
-                    this[reaction] = (reactionCount ?: 0) + 1
-                }
-                updateNote(note.copy(reactions = newMap, myReaction = reaction))
-                val success = account.deleteReaction(note.id).isSuccess && account.createReaction(reaction, note.id).isSuccess
-                updatingReaction.value = null
-                if(!success) {
-                    // Revert locally
-                    updateNote(
-                        note.copy(reactions = note.reactions.toMutableMap().apply {
-                            this[myReaction] = (this[myReaction] ?: 0) + 1
-                            this[reaction] = reactionCount ?: 1
-                        })
-                    )
-                }
-                return success
-            }
-        }
-    }
 
     fun requestEmojis(emojiList: List<String>) {
         emojiList.forEach {
@@ -315,10 +249,7 @@ fun NoteCard(
                 reactions = note.reactions,
                 expanded = false,
                 maxHeight = 200,
-                toggleReaction = {
-                    scope.launch { toggleReaction(it) }
-                },
-                loadingReaction = updatingReaction.value,
+                toggleReaction = { toggleReaction(it) },
                 myReaction = note.myReaction,
                 availableReactions = when(note.reactionAcceptance) {
                     null -> AvailableReactions.Any

@@ -97,8 +97,8 @@ fun Home(
     val scope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
     // Reaction selector is open if value is not null
-    // Selecting a reaction adds reaction to the note specified by its ID
-    val reactionSelectorStatus = remember { mutableStateOf<String?>(null) }
+    // Selecting a reaction adds reaction to the note specified by its index
+    val reactionSelectorStatus = remember { mutableStateOf<Int?>(null) }
 
     val context = LocalContext.current
     suspend fun loadUserData() {
@@ -107,6 +107,63 @@ fun Home(
             { userQuery.value = UserQuery.Success(it) },
             { userQuery.value = UserQuery.Error(it) }
         )
+    }
+
+    suspend fun toggleReaction(noteIndex: Int, reaction: String): Boolean {
+        val note = notes[noteIndex]
+        val myReaction = note.myReaction
+        val reactionCount = note.reactions[reaction]
+        val newMap: Map<String, Int>
+        if(myReaction == null) {
+            // Create reaction
+            newMap = note.reactions.toMutableMap().apply {
+                this[reaction] = (reactionCount ?: 0) + 1
+            }
+            notes[noteIndex] = note.copy(reactions = newMap, myReaction = reaction)
+            val success = account.createReaction(reaction, note.id).isSuccess
+            if(!success) {
+                // Revert locally
+                notes[noteIndex] = note.copy(reactions = note.reactions.toMutableMap().apply {
+                    this[reaction] = reactionCount ?: 0
+                })
+
+            }
+            return success
+        } else {
+            // Reaction already exists
+            if(myReaction == reaction) {
+                // Remove reaction
+                newMap = note.reactions.toMutableMap().apply {
+                    this[reaction] = (reactionCount ?: 1) - 1
+                }
+                notes[noteIndex] = note.copy(reactions = newMap, myReaction = null)
+                val success = account.deleteReaction(note.id).isSuccess
+                if(!success) {
+                    // Revert locally
+                    notes[noteIndex] = note.copy(reactions = note.reactions.toMutableMap().apply {
+                        this[reaction] = reactionCount ?: 1
+                    })
+
+                }
+                return success
+            } else {
+                // Change reaction
+                newMap = note.reactions.toMutableMap().apply {
+                    this[myReaction] = (this[myReaction] ?: 1) - 1
+                    this[reaction] = (reactionCount ?: 0) + 1
+                }
+                notes[noteIndex] = note.copy(reactions = newMap, myReaction = reaction)
+                val success = account.deleteReaction(note.id).isSuccess && account.createReaction(reaction, note.id).isSuccess
+                if(!success) {
+                    // Revert locally
+                    notes[noteIndex] = note.copy(reactions = note.reactions.toMutableMap().apply {
+                        this[myReaction] = (this[myReaction] ?: 0) + 1
+                        this[reaction] = reactionCount ?: 1
+                    })
+                }
+                return success
+            }
+        }
     }
 
     /**
@@ -160,7 +217,7 @@ fun Home(
             loadNotes()
         }
     }
-    
+
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val gallery = remember { mutableStateOf<GalleryContent?>(null) }
     gallery.value?.let {
@@ -323,27 +380,37 @@ fun Home(
                                             }
                                         ) { index ->
                                             NoteCard(
-                                                account,
                                                 notes[index],
                                                 {},
                                                 emojiMap.item,
                                                 settings,
                                                 { gallery.value = it },
-                                                { notes[index] = it },
-                                                { reactionSelectorStatus.value = notes[index].id }
+                                                { reactionSelectorStatus.value = index },
+                                                { scope.launch { toggleReaction(index, it) } }
                                             )
                                         }
                                     }
-                                    if(reactionSelectorStatus.value != null) {
-                                        ModalBottomSheet(
-                                            onDismissRequest = {
-                                                reactionSelectorStatus.value = null
-                                            },
+                                    reactionSelectorStatus.value.let { index ->
+                                        if(index != null) {
+                                            ModalBottomSheet(
+                                                onDismissRequest = {
+                                                    reactionSelectorStatus.value = null
+                                                },
 
-                                        ) {
-                                            ReactionSelector(emojiMap.item.map { it.value })
+                                                ) {
+                                                ReactionSelector(emojiMap.item.map { it.value }) {
+                                                    scope.launch {
+                                                        toggleReaction(
+                                                            index,
+                                                            it
+                                                        )
+                                                        reactionSelectorStatus.value = null
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
+
                                 }
                             }
                         }
