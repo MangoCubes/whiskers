@@ -1,7 +1,6 @@
 package ch.skew.whiskers.screens.mainScreen
 
 import android.widget.Toast
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,6 +28,7 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -52,6 +52,7 @@ import ch.skew.whiskers.components.GalleryContent
 import ch.skew.whiskers.components.GalleryViewer
 import ch.skew.whiskers.components.NoteCard
 import ch.skew.whiskers.components.PullRefreshIndicator
+import ch.skew.whiskers.components.ReactionSelector
 import ch.skew.whiskers.data.accounts.AccountData
 import ch.skew.whiskers.data.settings.Settings
 import ch.skew.whiskers.misskey.MisskeyAPI
@@ -95,6 +96,10 @@ fun Home(
     val emojis = remember { mutableStateOf<DataQueryStatus<Map<String, Emoji>>>(DataQueryStatus.Querying(false)) }
     val scope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
+    // Reaction selector is open if value is not null
+    // Selecting a reaction adds reaction to the note specified by its ID
+    val reactionSelectorStatus = remember { mutableStateOf<String?>(null) }
+
     val context = LocalContext.current
     suspend fun loadUserData() {
         userQuery.value = UserQuery.Querying
@@ -324,8 +329,19 @@ fun Home(
                                                 emojiMap.item,
                                                 settings,
                                                 { gallery.value = it },
-                                                { notes[index] = it }
+                                                { notes[index] = it },
+                                                { reactionSelectorStatus.value = notes[index].id }
                                             )
+                                        }
+                                    }
+                                    if(reactionSelectorStatus.value != null) {
+                                        ModalBottomSheet(
+                                            onDismissRequest = {
+                                                reactionSelectorStatus.value = null
+                                            },
+
+                                        ) {
+                                            ReactionSelector(emojiMap.item)
                                         }
                                     }
                                 }

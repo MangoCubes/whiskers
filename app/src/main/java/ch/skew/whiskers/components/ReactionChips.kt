@@ -21,13 +21,22 @@ enum class AvailableReactions {
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ReactionChips(
+    // List of custom reactions available
     reactions: Map<String, Int>,
+    // Max height of the chips in dp
     maxHeight: Int,
+    // Whether the chips should be expanded
     expanded: Boolean,
+    // Reactions that can be added to this note
     availableReactions: AvailableReactions,
+    // Callback to toggle a reaction
     toggleReaction: (String) -> Unit,
+    // Reaction that is currently being added
     loadingReaction: String?,
-    myReaction: String?
+    // Reaction that the user has added
+    myReaction: String?,
+    // Callback to open the reaction selector
+    openSelector: () -> Unit
 ) {
     FlowRow(
         if (expanded) Modifier.heightIn(max = maxHeight.dp)
@@ -50,16 +59,13 @@ fun ReactionChips(
                     leadingIcon = { Text("❤") }
                 )
             }
-            AvailableReactions.Any -> {
+            AvailableReactions.None -> {}
+            else -> {
                 AssistChip(
-                    onClick = { /*TODO*/ },
+                    onClick = openSelector,
                     label = { Text("+") },
                 )
             }
-            AvailableReactions.NonSensitive -> {
-
-            }
-            AvailableReactions.None -> {}
         }
     }
 }
