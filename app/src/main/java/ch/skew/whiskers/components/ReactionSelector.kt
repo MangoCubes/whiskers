@@ -147,7 +147,9 @@ fun ReactionSelector(reactions: List<Emoji>, createReaction: (String) -> Unit) {
             ReactionSelectorSection(emojis = section.emojis, createReaction = createReaction)
         }
         is ReactionSection.Custom -> {
-            CustomReactionSelectorSection(emojis = reactions, createReaction = createReaction)
+            CustomReactionSelectorSection(emojis = reactions, createReaction = {
+                createReaction(":$it@.:")
+            })
         }
     }
 }
