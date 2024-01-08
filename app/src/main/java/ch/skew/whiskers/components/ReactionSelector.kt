@@ -1,6 +1,8 @@
 package ch.skew.whiskers.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,16 +20,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import ch.skew.whiskers.misskey.data.api.Emoji
 import coil.compose.AsyncImage
 import coil.imageLoader
 import coil.request.CachePolicy
 import coil.request.ImageRequest
+import okhttp3.Dispatcher
 
 sealed class ReactionSection {
     data class Custom(
-        val title: String
+        val title: String,
+        val emoji: List<Emoji>
     ): ReactionSection()
     data class BuiltIn(
         val title: String,
@@ -41,10 +46,13 @@ sealed class ReactionSection {
 fun ReactionSelectorSection(emojis: List<String>, createReaction: (String) -> Unit) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(40.dp),
+        contentPadding = PaddingValues(16.dp)
     ) {
         items(emojis) { i ->
-            TextButton(
-                onClick = { createReaction(i) }
+            Box(
+                modifier = Modifier.clickable { createReaction(i) }
+                    .height(40.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Text(i)
             }
@@ -57,7 +65,8 @@ fun CustomReactionSelectorSection(emojis: List<Emoji>, createReaction: (String) 
     if(emojis.isEmpty()) {
         Box(
             contentAlignment = Alignment.Center,
-            modifier = Modifier.height(160.dp)
+            modifier = Modifier
+                .height(160.dp)
                 .fillMaxWidth()
         ) {
             Text(
@@ -66,14 +75,17 @@ fun CustomReactionSelectorSection(emojis: List<Emoji>, createReaction: (String) 
             )
         }
     } else {
+        val pxValue = LocalDensity.current.run { 40.dp.toPx() }
         val context = LocalContext.current
         LazyVerticalGrid(
-            columns = GridCells.Adaptive(80.dp),
+            columns = GridCells.Adaptive(40.dp),
+            contentPadding = PaddingValues(16.dp)
         ) {
             items(emojis) { emoji ->
-                TextButton(
-                    onClick = { createReaction(emoji.name) }
+                Box(
+                    modifier = Modifier.clickable { createReaction(emoji.name) }
                 ) {
+
                     val image = ImageRequest.Builder(context)
                         .data(emoji.url)
                         .memoryCacheKey(emoji.name)
@@ -81,6 +93,7 @@ fun CustomReactionSelectorSection(emojis: List<Emoji>, createReaction: (String) 
                         .diskCachePolicy(CachePolicy.ENABLED)
                         .memoryCachePolicy(CachePolicy.ENABLED)
                         .crossfade(true)
+                        .size(pxValue.toInt())
                         .build()
                     context.imageLoader.enqueue(image)
                     AsyncImage(model = image, contentDescription = emoji.name)
@@ -102,8 +115,7 @@ val objectsEmoji = listOf("👓", "🕶️", "🥽", "🥼", "🦺", "👔", "�
 val symbols = listOf("🏧", "🚮", "🚰", "♿", "🚹", "🚺", "🚻", "🚼", "🚾", "🛂", "🛃", "🛄", "🛅", "⚠️", "🚸", "⛔", "🚫", "🚳", "🚭", "🚯", "🚱", "🚷", "📵", "🔞", "☢️", "☣️", "⬆️", "↗️", "➡️", "↘️", "⬇️", "↙️", "⬅️", "↖️", "↕️", "↔️", "↩️", "↪️", "⤴️", "⤵️", "🔃", "🔄", "🔙", "🔚", "🔛", "🔜", "🔝", "🛐", "⚛️", "🕉️", "✡️", "☸️", "☯️", "✝️", "☦️", "☪️", "☮️", "🕎", "🔯", "♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓", "⛎", "🔀", "🔁", "🔂", "▶️", "⏩", "⏭️", "⏯️", "◀️", "⏪", "⏮️", "🔼", "⏫", "🔽", "⏬", "⏸️", "⏹️", "⏺️", "⏏️", "🎦", "🔅", "🔆", "📶", "📳", "📴", "♀️", "♂️", "⚧️", "✖️", "➕", "➖", "➗", "🟰", "♾️", "‼️", "⁉️", "❓", "❔", "❕", "❗", "〰️", "💱", "💲", "⚕️", "♻️", "⚜️", "🔱", "📛", "🔰", "⭕", "✅", "☑️", "✔️", "❌", "❎", "➰", "➿", "〽️", "✳️", "✴️", "❇️", "©️", "®️", "™️", "#️⃣", "*️⃣", "0️⃣", "1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟", "🔠", "🔡", "🔢", "🔣", "🔤", "🅰️", "🆎", "🅱️", "🆑", "🆒", "🆓", "ℹ️", "🆔", "Ⓜ️", "🆕", "🆖", "🅾️", "🆗", "🅿️", "🆘", "🆙", "🆚", "🈁", "🈂️", "🈷️", "🈶", "🈯", "🉐", "🈹", "🈚", "🈲", "🉑", "🈸", "🈴", "🈳", "㊗️", "㊙️", "🈺", "🈵", "🔴", "🟠", "🟡", "🟢", "🔵", "🟣", "🟤", "⚫", "⚪", "🟥", "🟧", "🟨", "🟩", "🟦", "🟪", "🟫", "⬛", "⬜", "◼️", "◻️", "◾", "◽", "▪️", "▫️", "🔶", "🔷", "🔸", "🔹", "🔺", "🔻", "💠", "🔘", "🔳", "🔲")
 val flags = listOf("🏁", "🚩", "🎌", "🏴", "🏳️", "🏳️‍🌈", "🏳️‍⚧️", "🏴‍☠️", "🇦🇨", "🇦🇩", "🇦🇪", "🇦🇫", "🇦🇬", "🇦🇮", "🇦🇱", "🇦🇲", "🇦🇴", "🇦🇶", "🇦🇷", "🇦🇸", "🇦🇹", "🇦🇺", "🇦🇼", "🇦🇽", "🇦🇿", "🇧🇦", "🇧🇧", "🇧🇩", "🇧🇪", "🇧🇫", "🇧🇬", "🇧🇭", "🇧🇮", "🇧🇯", "🇧🇱", "🇧🇲", "🇧🇳", "🇧🇴", "🇧🇶", "🇧🇷", "🇧🇸", "🇧🇹", "🇧🇻", "🇧🇼", "🇧🇾", "🇧🇿", "🇨🇦", "🇨🇨", "🇨🇩", "🇨🇫", "🇨🇬", "🇨🇭", "🇨🇮", "🇨🇰", "🇨🇱", "🇨🇲", "🇨🇳", "🇨🇴", "🇨🇵", "🇨🇷", "🇨🇺", "🇨🇻", "🇨🇼", "🇨🇽", "🇨🇾", "🇨🇿", "🇩🇪", "🇩🇬", "🇩🇯", "🇩🇰", "🇩🇲", "🇩🇴", "🇩🇿", "🇪🇦", "🇪🇨", "🇪🇪", "🇪🇬", "🇪🇭", "🇪🇷", "🇪🇸", "🇪🇹", "🇪🇺", "🇫🇮", "🇫🇯", "🇫🇰", "🇫🇲", "🇫🇴", "🇫🇷", "🇬🇦", "🇬🇧", "🇬🇩", "🇬🇪", "🇬🇫", "🇬🇬", "🇬🇭", "🇬🇮", "🇬🇱", "🇬🇲", "🇬🇳", "🇬🇵", "🇬🇶", "🇬🇷", "🇬🇸", "🇬🇹", "🇬🇺", "🇬🇼", "🇬🇾", "🇭🇰", "🇭🇲", "🇭🇳", "🇭🇷", "🇭🇹", "🇭🇺", "🇮🇨", "🇮🇩", "🇮🇪", "🇮🇱", "🇮🇲", "🇮🇳", "🇮🇴", "🇮🇶", "🇮🇷", "🇮🇸", "🇮🇹", "🇯🇪", "🇯🇲", "🇯🇴", "🇯🇵", "🇰🇪", "🇰🇬", "🇰🇭", "🇰🇮", "🇰🇲", "🇰🇳", "🇰🇵", "🇰🇷", "🇰🇼", "🇰🇾", "🇰🇿", "🇱🇦", "🇱🇧", "🇱🇨", "🇱🇮", "🇱🇰", "🇱🇷", "🇱🇸", "🇱🇹", "🇱🇺", "🇱🇻", "🇱🇾", "🇲🇦", "🇲🇨", "🇲🇩", "🇲🇪", "🇲🇫", "🇲🇬", "🇲🇭", "🇲🇰", "🇲🇱", "🇲🇲", "🇲🇳", "🇲🇴", "🇲🇵", "🇲🇶", "🇲🇷", "🇲🇸", "🇲🇹", "🇲🇺", "🇲🇻", "🇲🇼", "🇲🇽", "🇲🇾", "🇲🇿", "🇳🇦", "🇳🇨", "🇳🇪", "🇳🇫", "🇳🇬", "🇳🇮", "🇳🇱", "🇳🇴", "🇳🇵", "🇳🇷", "🇳🇺", "🇳🇿", "🇴🇲", "🇵🇦", "🇵🇪", "🇵🇫", "🇵🇬", "🇵🇭", "🇵🇰", "🇵🇱", "🇵🇲", "🇵🇳", "🇵🇷", "🇵🇸", "🇵🇹", "🇵🇼", "🇵🇾", "🇶🇦", "🇷🇪", "🇷🇴", "🇷🇸", "🇷🇺", "🇷🇼", "🇸🇦", "🇸🇧", "🇸🇨", "🇸🇩", "🇸🇪", "🇸🇬", "🇸🇭", "🇸🇮", "🇸🇯", "🇸🇰", "🇸🇱", "🇸🇲", "🇸🇳", "🇸🇴", "🇸🇷", "🇸🇸", "🇸🇹", "🇸🇻", "🇸🇽", "🇸🇾", "🇸🇿", "🇹🇦", "🇹🇨", "🇹🇩", "🇹🇫", "🇹🇬", "🇹🇭", "🇹🇯", "🇹🇰", "🇹🇱", "🇹🇲", "🇹🇳", "🇹🇴", "🇹🇷", "🇹🇹", "🇹🇻", "🇹🇼", "🇹🇿", "🇺🇦", "🇺🇬", "🇺🇲", "🇺🇳", "🇺🇸", "🇺🇾", "🇺🇿", "🇻🇦", "🇻🇨", "🇻🇪", "🇻🇬", "🇻🇮", "🇻🇳", "🇻🇺", "🇼🇫", "🇼🇸", "🇽🇰", "🇾🇪", "🇾🇹", "🇿🇦", "🇿🇲", "🇿🇼", "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "🏴󠁧󠁢󠁳󠁣󠁴󠁿", "🏴󠁧󠁢󠁷󠁬󠁳󠁿")
 
-val sections: List<ReactionSection> = listOf(
-    ReactionSection.Custom("Custom"),
+val builtInSections: List<ReactionSection> = listOf(
     ReactionSection.BuiltIn("Smileys and emoticons", "\uD83D\uDE00\uD83E\uDD23\uD83D\uDE2D", smileysAndEmoticons),
     ReactionSection.BuiltIn("People and body", "\uD83D\uDC4B\uD83D\uDC4D\uD83D\uDC45", peopleAndBody),
     ReactionSection.BuiltIn("Animals and nature", "\uD83D\uDC31\uD83C\uDF32\uD83C\uDF15", animalAndNature),
@@ -116,7 +128,14 @@ val sections: List<ReactionSection> = listOf(
 )
     @Composable
 fun ReactionSelector(reactions: List<Emoji>, createReaction: (String) -> Unit) {
-    val selected = remember { mutableStateOf(1) }
+    val sections = builtInSections + reactions.groupBy { it.category }.map { (category, emojis) ->
+        if (category != null) {
+            ReactionSection.Custom(category, emojis)
+        } else {
+            ReactionSection.Custom("Uncategorized", emojis)
+        }
+    }
+    val selected = remember { mutableStateOf(0) }
     ScrollableTabRow(selectedTabIndex = selected.value) {
         sections.forEachIndexed { idx, section ->
             Tab(
@@ -147,8 +166,8 @@ fun ReactionSelector(reactions: List<Emoji>, createReaction: (String) -> Unit) {
             ReactionSelectorSection(emojis = section.emojis, createReaction = createReaction)
         }
         is ReactionSection.Custom -> {
-            CustomReactionSelectorSection(emojis = reactions, createReaction = {
-                createReaction(":$it@.:")
+            CustomReactionSelectorSection(emojis = section.emoji, createReaction = {
+                createReaction(":$it:")
             })
         }
     }
