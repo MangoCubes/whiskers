@@ -34,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
@@ -93,7 +94,7 @@ fun Home(
     val userQuery = remember { mutableStateOf<UserQuery>(UserQuery.Querying) }
     val notesQuery = remember { mutableStateOf<ErrorQueryStatus>(ErrorQueryStatus.Querying(false)) }
     val notes = remember { mutableStateListOf<Note>() }
-    val emojis = remember { mutableStateOf<DataQueryStatus<Map<String, Emoji>>>(DataQueryStatus.Querying(false)) }
+    val emojis = remember { mutableStateOf<DataQueryStatus<List<Emoji>>>(DataQueryStatus.Querying(false)) }
     val scope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
     // Reaction selector is open if value is not null
@@ -126,7 +127,6 @@ fun Home(
                 notes[noteIndex] = note.copy(reactions = note.reactions.toMutableMap().apply {
                     this[reaction] = reactionCount ?: 0
                 })
-
             }
             return success
         } else {
@@ -197,15 +197,10 @@ fun Home(
         notes.clear()
         launch {
             account.getEmojis().onSuccess { res ->
-                emojis.value = DataQueryStatus.Success(
-                    res.emojis.associateBy {
-                        it.name
-                    }
-                )
+                emojis.value = DataQueryStatus.Success(res.emojis)
             }.onFailure {
                 // Emojis may not exist in a given instance
-                println(it)
-                if (it is NotFoundError) emojis.value = DataQueryStatus.Success(mapOf())
+                if (it is NotFoundError) emojis.value = DataQueryStatus.Success(listOf())
             }
         }
         launch {
@@ -363,8 +358,8 @@ fun Home(
                             }
                         }
                         else -> {
-                            emojis.value.let { emojiMap ->
-                                if(emojiMap is DataQueryStatus.Success) {
+                            emojis.value.let { emojiList ->
+                                if(emojiList is DataQueryStatus.Success) {
                                     LazyColumn(
                                         state = lazyListState,
                                         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -382,7 +377,7 @@ fun Home(
                                             NoteCard(
                                                 notes[index],
                                                 {},
-                                                emojiMap.item,
+                                                emojiList.item.associateBy { it.name },
                                                 settings,
                                                 { gallery.value = it },
                                                 { reactionSelectorStatus.value = index },
@@ -390,27 +385,27 @@ fun Home(
                                             )
                                         }
                                     }
+                                    val sheetState = rememberModalBottomSheetState()
                                     reactionSelectorStatus.value.let { index ->
                                         if(index != null) {
                                             ModalBottomSheet(
                                                 onDismissRequest = {
                                                     reactionSelectorStatus.value = null
                                                 },
-
-                                                ) {
-                                                ReactionSelector(emojiMap.item.map { it.value }) {
+                                                sheetState = sheetState
+                                            ) {
+                                                ReactionSelector(emojiList.item) {
+                                                    reactionSelectorStatus.value = null
                                                     scope.launch {
                                                         toggleReaction(
                                                             index,
                                                             it
                                                         )
-                                                        reactionSelectorStatus.value = null
                                                     }
                                                 }
                                             }
                                         }
                                     }
-
                                 }
                             }
                         }
